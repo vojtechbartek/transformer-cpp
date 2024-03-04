@@ -3,19 +3,20 @@
 
 class SelfAttention {
 public:
-	SelfAttention(int embed_dim, int num_heads);
-	std::vector<std::vector<float>> forward(std::vector<std::vector<float>>& input,
-						std::vector<std::vector<float>>& mask);	
-    std::vector<std::vector<float>> backward(std::vector<std::vector<float>>& input, std::vector<std::vector<float>>& grad_output);
+	SelfAttention(int embed_dim, int head_size);
+	std::vector<std::vector<std::vector<float>>> forward(std::vector<std::vector<std::vector<float>>>& input,
+						std::vector<std::vector<std::vector<float>>>& mask);	
 	void updateParameters(float learning_rate);
-
+	std::vector<std::vector<float>> backward(const std::vector<std::vector<float>>& input, const std::vector<std::vector<float>>& grad_output); 
+ 
 	std::vector<std::vector<float>> getWeights() const;
-	void setWeights(const std::vector<std::vector<float>>& weights);
+	std::vector<std::vector<float>> getSoftmaxOutput() const;
 
 private:
 	int embed_dim_;
-	int num_heads_;
-	std::vector<std::vector<float>> Q, K, V; // Query, key and value
+	int head_size_;
+	std::vector<std::vector<std::vector<float>>> softmax_output;
+	std::vector<std::vector<std::vector<float>>> Q, K, V; // Query, key and value
 	std::vector<std::vector<float>> Wq, Wk, Wv; // Weights for query, key and value
 	std::vector<std::vector<float>> grad_Wq, grad_Wk, grad_Wv; // Gradients for query, key and value
 };

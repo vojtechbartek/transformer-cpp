@@ -96,5 +96,42 @@ int main() {
 		std::cout << "[-] Matrix softmax test failed" << std::endl;
 	}
 
+	// test matrix addition
+	std::vector<std::vector<float>> matrix5 = {
+		{1.0f, 2.1f, 3},
+		{4, -2, 6},
+		{7, 0, 9},
+		{1, 2, 10000}
+	};
+
+	std::vector<std::vector<float>> matrix6 = {
+		{1, 0.0f, 2},
+		{1, 2.0f, 3},
+		{0.1f, 1, 3.0f},
+		{1, 2, 1}
+	};
+
+	std::vector<std::vector<float>> expected_result_addition = {
+		{2.0f, 2.1f, 5},
+		{5, 0, 9},
+		{7.1f, 1, 12},
+		{2, 4, 10001}
+	};
+	
+	std::vector<std::vector<float>> result_addition = MatrixUtils::matrixAddition(matrix5, matrix6);
+	bool same_addition = true;
+	for (int i = 0; i < result_addition.size(); i++) {
+		for (int j = 0; j < result_addition[i].size(); j++) {
+			if (result_addition[i][j] != expected_result_addition[i][j]) {
+				same_addition = false;
+				break;
+			}
+		}
+	}
+	if (same_addition) {
+		std::cout << "[+] Matrix addition test passed" << std::endl;
+	} else {
+		std::cout << "[-] Matrix addition test failed" << std::endl;
+	}
 	return 0;
 }

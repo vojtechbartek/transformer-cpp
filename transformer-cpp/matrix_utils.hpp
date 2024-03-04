@@ -24,6 +24,84 @@ namespace MatrixUtils {
 }
 
   template <typename T>
+  std::vector<std::vector<std::vector<T>>> batchMatrixMultiplication(const std::vector<std::vector<std::vector<T>>>& batch_A, const std::vector<std::vector<T>>& B) {
+    /*
+      * Compute the matrix multiplication of a batch of matrices with a single matrix
+      * 
+      * @param batch_A: a batch of matrices of size (batch x seq_len x embed_dim)
+      * @param B: a single matrix of size (embed_dim x head_size)
+      * @return: the result of the matrix multiplication of size (batch x seq_len x head_size)
+    */
+    int batch_size = batch_A.size();
+    int seq_len = batch_A[0].size();
+    int embed_dim = B.size();
+    int head_size = B[0].size();
+    
+    std::vector<std::vector<std::vector<T>>> result(batch_size, std::vector<std::vector<T>>(seq_len, std::vector<T>(head_size, 0)));
+    
+    for (int b = 0; b < batch_size; ++b) {
+      if (batch_A[b][0].size() != embed_dim) {
+        std::cerr << "Matrix A and B are not compatible for multiplication, A columns = " << batch_A[b][0].size() << " and B rows = " << embed_dim << std::endl;
+        throw std::invalid_argument("Matrix A and B are not compatible for multiplication");
+      }
+      for (int i = 0; i < seq_len; ++i) {
+        for (int j = 0; j < head_size; ++j) {
+          for (int k = 0; k < embed_dim; ++k) {
+            result[b][i][j] += batch_A[b][i][k] * B[k][j];
+          }
+        }
+      }
+    }
+    return result;
+  }
+
+  template <typename T>
+  std::vector<std::vector<std::vector<T>>> batchMatrixMultiplication(const std::vector<std::vector<std::vector<T>>>& batch_A, const std::vector<std::vector<std::vector<T>>>& batch_B) {
+    /*
+      * Compute the matrix multiplication of a 3D matrix with another 3D matrix
+      * 
+      * @param batch_A: a batch of matrices of size (a x b x c)
+      * @param batch_B: a batch of matrices of size (a x c x d)
+      * @return: the result of the matrix multiplication of size (a x b x d)
+    */
+    int a = batch_A.size();
+    int b = batch_A[0].size();
+    int c = batch_B[0].size();
+    int d = batch_B[0][0].size(); 
+    if (batch_A[0][0].size() != c) {
+      std::cerr << "Matrix A and B are not compatible for multiplication, A columns = " << batch_A[0][0].size() << " and B rows = " << c << std::endl;
+      throw std::invalid_argument("Matrix A and B are not compatible for multiplication");
+    }
+    std::vector<std::vector<std::vector<T>>> result(a, std::vector<std::vector<T>>(b, std::vector<T>(d, 0)));
+    for (int i = 0; i < a; ++i) {
+      for (int j = 0; j < b; ++j) {
+        for (int k = 0; k < d; ++k) {
+          for (int l = 0; l < c; ++l) {
+            result[i][j][k] += batch_A[i][j][l] * batch_B[i][l][k];
+          }
+        }
+      }
+    }
+    return result;
+  }
+
+  template <typename T>
+  std::vector<std::vector<T> > matrixAddition(const std::vector<std::vector<T> >& A, const std::vector<std::vector<T> >& B) {
+    if (A.size() != B.size() || A[0].size() != B[0].size()) {
+      std::cerr << "Matrix A and B are not compatible for addition, A size = " << A.size() << "x" << A[0].size() << " and B size = " << B.size() << "x" << B[0].size() << std::endl;
+      throw std::invalid_argument("Matrix A and B are not compatible for addition");
+    }
+    int rows = A.size(), cols = A[0].size();
+    std::vector<std::vector<T> > result(rows, std::vector<T>(cols, 0));
+    for (int i = 0; i < rows; ++i) {
+      for (int j = 0; j < cols; ++j) {
+        result[i][j] = A[i][j] + B[i][j];
+      }
+    }
+    return result;
+}
+
+  template <typename T>
   std::vector<std::vector<T> > matrixTranspose(const std::vector<std::vector<T> >& A) {
     int rows = A.size(), cols = A[0].size();
     
@@ -35,8 +113,29 @@ namespace MatrixUtils {
     }
 
     return result;
-
     }
+
+  template <typename T>
+  std::vector<std::vector<std::vector<T>>> batchMatrixTranspose(const std::vector<std::vector<std::vector<T>>>& batch_A) {
+    /*
+      * Compute the transpose of a batch of matrices
+      * 
+      * @param batch_A: a batch of matrices of size (batch x rows x cols)
+      * @return: the transpose of the batch of matrices of size (batch x cols x rows)
+    */
+    int batch_size = batch_A.size();
+    int rows = batch_A[0].size();
+    int cols = batch_A[0][0].size();
+    std::vector<std::vector<std::vector<T>>> result(batch_size, std::vector<std::vector<T>>(cols, std::vector<T>(rows, 0)));
+    for (int b = 0; b < batch_size; ++b) {
+      for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+          result[b][j][i] = batch_A[b][i][j];
+        }
+      }
+    }
+    return result;
+  }
 
 
   template <typename T>
@@ -62,8 +161,24 @@ namespace MatrixUtils {
   }
 
   template <typename T>
-  std::vector<std::vector<T> > rowSoftmaxDerivative(const std::vector<std::vector<float>> &grad_output, 
-                                                    const std::vector<std::vector<float>> &softmax_output) {
+  std::vector<std::vector<std::vector<T>>> rowSoftmax(const std::vector<std::vector<std::vector<T>>>& A) {
+    /*
+      * Compute the softmax of a batch of matrices
+      * 
+      * @param A: a batch of matrices of size (batch x rows x cols)
+      * @return: the softmax of the batch of matrices
+    */
+    int batch_size = A.size();
+    std::vector<std::vector<std::vector<T>>> softmax_scores(batch_size);
+    for (int b = 0; b < batch_size; ++b) {
+      softmax_scores[b] = rowSoftmax(A[b]);
+    }
+    return softmax_scores;
+  }
+
+  template <typename T>
+  std::vector<std::vector<T> > rowSoftmaxDerivative(const std::vector<std::vector<T>> &grad_output, 
+                                                    const std::vector<std::vector<T>> &softmax_output) {
   /*
     * Compute the derivative of the softmax function with respect to the input
     * 
@@ -105,7 +220,7 @@ namespace MatrixUtils {
     * @param grad_weights: the gradients of the loss with respect to the weights
     * @param learning_rate: the learning rate
     * @return: None
-  * /
+  */
 
     int rows = weights.size(), cols = weights[0].size();
     for (int i = 0; i < rows; ++i) {
