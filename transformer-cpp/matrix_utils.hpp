@@ -4,6 +4,55 @@
 
 
 namespace MatrixUtils {
+
+  template <typename T>
+  std::vector<std::vector<T> > matrixAddition(const std::vector<std::vector<T> >& A, const std::vector<std::vector<T> >& B) {
+  /*
+    * Compute the addition of two matrices
+    * 
+    * @param A: a matrix of size (rows x cols)
+    * @param B: a matrix of size (rows x cols)
+    * @return: the result of the addition of the two matrices, size (rows x cols)
+  */
+  if (A.size() != B.size() || A[0].size() != B[0].size()) {
+    std::cerr << "Matrix A and B are not compatible for addition, A size = " << A.size() << "x" << A[0].size() << " and B size = " << B.size() << "x" << B[0].size() << std::endl;
+    throw std::invalid_argument("Matrix A and B are not compatible for addition");
+  }
+  int rows = A.size(), cols = A[0].size();
+  std::vector<std::vector<T> > result(rows, std::vector<T>(cols, 0));
+  for (int i = 0; i < rows; ++i) {
+    for (int j = 0; j < cols; ++j) {
+      result[i][j] = A[i][j] + B[i][j];
+    }
+  }
+  return result;
+}
+
+  template <typename T>
+  std::vector<std::vector<std::vector<T>>> matrixAddition(const std::vector<std::vector<std::vector<T>>>& A, const std::vector<std::vector<std::vector<T>>>& B) {
+    /*
+      * Compute the addition of two 3D matrices
+      * 
+      * @param A: a 3D matrix of size (a x b x c)
+      * @param B: a 3D matrix of size (a x b x c)
+      * @return: the result of the addition of the two 3D matrices, size (a x b x c)
+    */
+    int a = A.size(), b = A[0].size(), c = A[0][0].size();
+    if (A.size() != B.size() || A[0].size() != B[0].size() || A[0][0].size() != B[0][0].size()) {
+      std::cerr << "Matrix A and B are not compatible for addition, A size = " << A.size() << "x" << A[0].size() << "x" << A[0][0].size() << " and B size = " << B.size() << "x" << B[0].size() << "x" << B[0][0].size() << std::endl;
+      throw std::invalid_argument("Matrix A and B are not compatible for addition");
+    }
+    std::vector<std::vector<std::vector<T>>> result(a, std::vector<std::vector<T>>(b, std::vector<T>(c, 0)));
+    for (int i = 0; i < a; ++i) {
+      for (int j = 0; j < b; ++j) {
+        for (int k = 0; k < c; ++k) {
+          result[i][j][k] = A[i][j][k] + B[i][j][k];
+        }
+      }
+    }
+    return result;
+  }
+
   template <typename T>
   std::vector<std::vector<T> > matrixMultiplication(const std::vector<std::vector<T> >& A, const std::vector<std::vector<T> >& B) {
     int a_rows = A.size(), a_cols = A[0].size(), b_rows = B.size(), b_cols = B[0].size();
@@ -85,27 +134,11 @@ namespace MatrixUtils {
     return result;
   }
 
-  template <typename T>
-  std::vector<std::vector<T> > matrixAddition(const std::vector<std::vector<T> >& A, const std::vector<std::vector<T> >& B) {
-    if (A.size() != B.size() || A[0].size() != B[0].size()) {
-      std::cerr << "Matrix A and B are not compatible for addition, A size = " << A.size() << "x" << A[0].size() << " and B size = " << B.size() << "x" << B[0].size() << std::endl;
-      throw std::invalid_argument("Matrix A and B are not compatible for addition");
-    }
-    int rows = A.size(), cols = A[0].size();
-    std::vector<std::vector<T> > result(rows, std::vector<T>(cols, 0));
-    for (int i = 0; i < rows; ++i) {
-      for (int j = 0; j < cols; ++j) {
-        result[i][j] = A[i][j] + B[i][j];
-      }
-    }
-    return result;
-}
-
-  template <typename T>
+  template <typename T> 
   std::vector<std::vector<T> > matrixTranspose(const std::vector<std::vector<T> >& A) {
     int rows = A.size(), cols = A[0].size();
-    
-    std::vector<std::vector<T> > result(cols, std::vector<T>(rows, 0));
+    // initialize the result matrix with the size of the transposed matrix 
+    std::vector<std::vector<T> > result(cols, std::vector<T>(rows, T(0)));
     for (int i = 0; i < rows; ++i) {
       for (int j = 0; j < cols; ++j) {
         result[j][i] = A[i][j];
@@ -140,19 +173,25 @@ namespace MatrixUtils {
 
   template <typename T>
   std::vector<std::vector<T> > rowSoftmax(const std::vector<std::vector<T> >& A) {
-    int rows = A.size(), cols = A[0].size();
-    std::vector<std::vector<T> > softmax_scores(rows, std::vector<T>(cols, 0));
-    for (int i = 0; i < rows; ++i) {
+    /*
+      * Compute the softmax of a matrix
+      * 
+      * @param A: a matrix of size (seq_len x embed_dim)
+      * @return: the softmax of the matrix
+    */
+    int seq_len = A.size(), embed_dim = A[0].size();
+    std::vector<std::vector<T> > softmax_scores(seq_len, std::vector<T>(embed_dim, 0));
+    for (int i = 0; i < seq_len; ++i) {
       T max = *std::max_element(A[i].begin(), A[i].end()); // Find max element 
       T sum = 0.0f;
-      for (int j = 0; j < cols; ++j) {
+      for (int j = 0; j < embed_dim; ++j) {
         // Subtract max from each element to avoid overflow
         softmax_scores[i][j] = std::exp(A[i][j] - max);
         sum += softmax_scores[i][j];
       }
 
     // divide each element by the sum of all elements
-    for (int j = 0; j < cols; ++j) {
+    for (int j = 0; j < embed_dim; ++j) {
       softmax_scores[i][j] /= sum;
     }
   }
@@ -165,7 +204,7 @@ namespace MatrixUtils {
     /*
       * Compute the softmax of a batch of matrices
       * 
-      * @param A: a batch of matrices of size (batch x rows x cols)
+      * @param A: a batch of matrices of size (batch x seq_len x embed_dim)
       * @return: the softmax of the batch of matrices
     */
     int batch_size = A.size();
@@ -182,20 +221,20 @@ namespace MatrixUtils {
   /*
     * Compute the derivative of the softmax function with respect to the input
     * 
-    * @param grad_output: the gradient of the loss with respect to the output of the softmax function
-    * @param softmax_output: the output of the softmax function
+    * @param grad_output: the gradient of the loss with respect to the output of the softmax function, shape (seq_len x embed_dim)
+    * @param softmax_output: the output of the softmax function, shape (seq_len x embed_dim)
     * @return: the gradient of the loss with respect to the input of the softmax function
   */
 
-  size_t batch_size = softmax_output.size();
-  size_t seq_len = softmax_output[0].size();
+  size_t seq_len = softmax_output.size();
+  size_t embed_dim = softmax_output[0].size();
 
-  std::vector<std::vector<float>> grad_softmax(batch_size, std::vector<float>(seq_len, 0.0));
+  std::vector<std::vector<float>> grad_softmax(seq_len, std::vector<float>(embed_dim, 0.0));
 
-  for (size_t i = 0; i < batch_size; i++) {
-    for (size_t j = 0; j < seq_len; j++) {
-      float gradient = 0.0f;
-      for (size_t k = 0; k < seq_len; k++) {
+  for (size_t i = 0; i < seq_len; i++) {
+    for (size_t j = 0; j < embed_dim; j++) {
+      T gradient = 0.0;
+      for (size_t k = 0; k < embed_dim; k++) {
         if (k == j) {
           // Diagonal part of the Jacobian: softmax(x_i) * (1 - softmax(x_i))
           gradient += grad_output[i][k] * softmax_output[i][j] * (1 - softmax_output[i][j]);
@@ -206,6 +245,25 @@ namespace MatrixUtils {
        }
     grad_softmax[i][j] = gradient;
     }
+  }
+  return grad_softmax;
+}
+
+template <typename T>
+std::vector<std::vector<std::vector<T>>> rowSoftmaxDerivative(const std::vector<std::vector<std::vector<T>>>& grad_output, 
+                                                              const std::vector<std::vector<std::vector<T>>>& softmax_output) {
+  /*
+   * Compute the derivative of the softmax function with respect to the input for a batch of matrices
+   *
+   * @param grad_output: the gradient of the loss with respect to the output of the softmax function, shape (batch x seq_len x embed_dim)
+   * @param softmax_output: the output of the softmax function, shape (batch x seq_len x embed_dim)
+   * @return: the gradient of the loss with respect to the input of the softmax function, shape (batch x seq_len x embed_dim)
+   */
+  
+  size_t batch_size = softmax_output.size();
+  std::vector<std::vector<std::vector<T>>> grad_softmax(batch_size);
+  for (size_t b = 0; b < batch_size; b++) {
+    grad_softmax[b] = rowSoftmaxDerivative(grad_output[b], softmax_output[b]);
   }
   return grad_softmax;
 }

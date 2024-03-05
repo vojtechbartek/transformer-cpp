@@ -7,10 +7,10 @@ public:
 	std::vector<std::vector<std::vector<float>>> forward(std::vector<std::vector<std::vector<float>>>& input,
 						std::vector<std::vector<std::vector<float>>>& mask);	
 	void updateParameters(float learning_rate);
-	std::vector<std::vector<float>> backward(const std::vector<std::vector<float>>& input, const std::vector<std::vector<float>>& grad_output); 
+	std::vector<std::vector<std::vector<float>>> backward(const std::vector<std::vector<std::vector<float>>>& input, const std::vector<std::vector<std::vector<float>>>& grad_output); 
  
-	std::vector<std::vector<float>> getWeights() const;
-	std::vector<std::vector<float>> getSoftmaxOutput() const;
+	std::vector<std::vector<std::vector<float>>> getWeights() const; // returns {Wq, Wk, Wv}
+	std::vector<std::vector<std::vector<float>>> getSoftmaxOutput() const;
 
 private:
 	int embed_dim_;
