@@ -59,6 +59,7 @@ namespace MatrixUtils {
     if (a_cols != b_rows) {
       // matrices are not compatible for multiplication, throw an exception and print the sizes of the matrices
     std::cerr << "Matrix A and B are not compatible for multiplication, A columns = " << a_cols << " and B rows = " << b_rows << std::endl;
+    throw std::invalid_argument("Matrix A and B are not compatible for multiplication");
     }
     
     std::vector<std::vector<T> > result(a_rows, std::vector<T>(b_cols, 0));
@@ -117,8 +118,13 @@ namespace MatrixUtils {
     int b = batch_A[0].size();
     int c = batch_B[0].size();
     int d = batch_B[0][0].size(); 
+    
     if (batch_A[0][0].size() != c) {
-      std::cerr << "Matrix A and B are not compatible for multiplication, A columns = " << batch_A[0][0].size() << " and B rows = " << c << std::endl;
+      // print sizes of both matrices
+      std::cerr << "Matrix A and B are not compatible for multiplication" << std::endl;
+      std::cerr << "A : " << batch_A.size() << "x" << batch_A[0].size() << "x" << batch_A[0][0].size() << std::endl;
+      std::cerr << "B : " << batch_B.size() << "x" << batch_B[0].size() << "x" << batch_B[0][0].size() << std::endl;
+
       throw std::invalid_argument("Matrix A and B are not compatible for multiplication");
     }
     std::vector<std::vector<std::vector<T>>> result(a, std::vector<std::vector<T>>(b, std::vector<T>(d, 0)));
@@ -222,7 +228,7 @@ namespace MatrixUtils {
     * Compute the derivative of the softmax function with respect to the input
     * 
     * @param grad_output: the gradient of the loss with respect to the output of the softmax function, shape (seq_len x embed_dim)
-    * @param softmax_output: the output of the softmax function, shape (seq_len x embed_dim)
+    * @param softmax_output: the output of the softmax function, shape (seq_len x seq_len)
     * @return: the gradient of the loss with respect to the input of the softmax function
   */
 
@@ -256,7 +262,7 @@ std::vector<std::vector<std::vector<T>>> rowSoftmaxDerivative(const std::vector<
    * Compute the derivative of the softmax function with respect to the input for a batch of matrices
    *
    * @param grad_output: the gradient of the loss with respect to the output of the softmax function, shape (batch x seq_len x embed_dim)
-   * @param softmax_output: the output of the softmax function, shape (batch x seq_len x embed_dim)
+   * @param softmax_output: the output of the softmax function, shape (batch x seq_len x seq_len)
    * @return: the gradient of the loss with respect to the input of the softmax function, shape (batch x seq_len x embed_dim)
    */
   

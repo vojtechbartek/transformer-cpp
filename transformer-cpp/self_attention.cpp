@@ -76,13 +76,12 @@ std::vector<std::vector<std::vector<float>>> SelfAttention::backward(const std::
   */
 
   // Compute the gradients with respect to the attention weights
-  auto grad_scores = MatrixUtils::rowSoftmaxDerivative(grad_output, softmax_output); // (batch_size x seq_len x embed_dim)
+  auto grad_scores = MatrixUtils::rowSoftmaxDerivative(grad_output, softmax_output); // (batch_size x seq_len x seq_len)
 
   // Compute the gradients with respect to Q, K, and V
-  auto grad_Q = MatrixUtils::batchMatrixMultiplication(grad_scores, MatrixUtils::matrixTranspose(K)); // (batch_size x seq_len x head_size)
-  auto grad_K = MatrixUtils::batchMatrixMultiplication(MatrixUtils::matrixTranspose(grad_scores), Q); // (batch_size x seq_len x head_size)
+  auto grad_Q = MatrixUtils::batchMatrixMultiplication(grad_scores, K); // (batch_size x seq_len x head_size)
+  auto grad_K = MatrixUtils::batchMatrixMultiplication(grad_scores, Q); // (batch_size x seq_len x head_size)
   auto grad_V = grad_output; // Direct gradient contribution for V from grad_output, shape (batch_size x seq_len x head_size)
-  
 
   // Initialize the gradients to zero
   grad_Wq = std::vector<std::vector<float>>(embed_dim_, std::vector<float>(head_size_, 0));
