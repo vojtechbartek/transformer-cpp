@@ -133,5 +133,60 @@ int main() {
 	} else {
 		std::cout << "[-] Matrix addition test failed" << std::endl;
 	}
+
+	// test batch matrix mean
+	// initialize tesnor of shape (2, 3, 2)
+	std::vector<std::vector<std::vector<float>>> tensor = {
+		{
+			{1.0f, 2.1f},
+			{4, -2},
+			{7, 0}
+		},
+		{
+			{1, 2},
+			{4, -2},
+			{3, 0}
+		}
+	};
+
+	std::vector<std::vector<float>> expected_result_mean = {
+		{1.0f, 2.05f},
+		{4, -2},
+		{5, 0}
+	};
+
+	std::vector<std::vector<float>> result_mean = MatrixUtils::batchMatrixMean(tensor);
+	bool same_mean = true;
+	for (int i = 0; i < result_mean.size(); i++) {
+		for (int j = 0; j < result_mean[i].size(); j++) {
+			if (result_mean[i][j] != expected_result_mean[i][j]) {
+				same_mean = false;
+				break;
+			}
+		}
+	}
+	if (same_mean) {
+		std::cout << "[+] Batch matrix mean test passed" << std::endl;
+	} else {
+		std::cout << "[-] Batch matrix mean test failed" << std::endl;
+	}
+
+	// test batch vector mean
+	// use the same tensor as above
+	std::vector<float> expected_result_mean_vector = {10.0f / 3.0f, 0.05f / 3.0f};
+	std::vector<float> result_mean_vector = MatrixUtils::batchVectorMean(tensor);
+	bool same_mean_vector = true;
+	for (int i = 0; i < result_mean_vector.size(); i++) {
+		if (std::abs(result_mean_vector[i] - expected_result_mean_vector[i]) > 0.0001f) {
+			same_mean_vector = false;
+			break;
+		}
+	}
+	if (same_mean_vector) {
+		std::cout << "[+] Batch vector mean test passed" << std::endl;
+	} else {
+		std::cout << "[-] Batch vector mean test failed" << std::endl;
+	}
+
 	return 0;
 }

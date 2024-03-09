@@ -1,4 +1,4 @@
-#include "positional_encoding.hpp"
+/*#include "positional_encoding.hpp"
 
 std::vector<std::vector<float>> PositionalEncoding::generate(int length, int embedding_dim) {
   // Initialize the position encoding matrix
@@ -11,4 +11,4 @@ std::vector<std::vector<float>> PositionalEncoding::generate(int length, int emb
   }
   return position_encoding;
 }
-
+*/

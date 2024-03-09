@@ -140,6 +140,53 @@ namespace MatrixUtils {
     return result;
   }
 
+  template <typename T>
+  std::vector<std::vector<T>> batchMatrixMean(const std::vector<std::vector<std::vector<T>>>& batch_tensor) {
+    /*
+      * Compute the mean across the batch (first) dimension of a 3D matrix
+      *
+      * @param batch_tensor: a batch of matrices of size (batch x rows x cols)
+      * @return: the mean of the batch of matrices of size (rows x cols)
+      */
+    int batch_size = batch_tensor.size();
+    int rows = batch_tensor[0].size();
+    int cols = batch_tensor[0][0].size();
+
+    std::vector<std::vector<T>> mean(rows, std::vector<T>(cols, 0));
+    for (const auto& matrix : batch_tensor) {
+      for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+          mean[i][j] += matrix[i][j] / batch_size;
+         }
+      }
+    }
+    return mean;
+  }
+
+  
+  template <typename T>
+  std::vector<T> batchVectorMean(const std::vector<std::vector<std::vector<T>>>& batch_tensor) {
+    /*
+      * Compute the mean across the batch (first) and rows (second) dimension of a 3D matrix
+      *
+      * @param batch_tensor: a batch of matrices of size (batch x rows x cols)
+      * @return: the mean of the batch of matrices of size (cols)
+      */
+    int batch_size = batch_tensor.size();
+    int cols = batch_tensor[0][0].size();
+    
+    std::vector<T> mean(cols, 0);
+
+    for (const auto& matrix : batch_tensor) {
+      for (const auto& row : matrix) {
+        for (int j = 0; j < cols; ++j) {
+          mean[j] += row[j] / (batch_size * matrix.size());
+        }
+      }
+    }
+    return mean;
+}
+
   template <typename T> 
   std::vector<std::vector<T> > matrixTranspose(const std::vector<std::vector<T> >& A) {
     int rows = A.size(), cols = A[0].size();

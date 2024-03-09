@@ -19,7 +19,7 @@ all: $(EXECUTABLES)
 $(BIN_DIR)/%: $(TEST_DIR)/%.cpp $(SOURCES) $(HEADERS)
 	@mkdir -p $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) -I$(SRC_DIR) $< $(SOURCES) -o $@
-	@echo "Compiled "$<" successfully!"
+	@echo "   Compiled "$<" successfully!"
 
 # Target to run all tests
 test: all

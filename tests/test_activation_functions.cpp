@@ -51,18 +51,23 @@ int main() {
 		{{1.3f, -2.0f, 0.0f, 1.0f}, {0.0f, 1.0f, -1.12f, 5.0f}, {0.0f, 0.0f, 0.31f, -0.1f}},
 		{{-1.3f, 0.0f, 0.0f, -3.0f}, {1.1f, 21.2f, -1.0f, 0.0f}, {0.2f, 0.0f, -0.31f, 0.1f}}
 	};
-	expected = {
-		{{1.0f, 0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f, 0.0f}},
-		{{0.0f, 0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f, 1.0f}}
+	std::vector<std::vector<std::vector<float>>> gradient = {
+		{{4.0f, -1.0f, 2.0f, -1.2f}, {12.0f, 1.123f, 1.1f, 3.0f}, {0.1f, 1, 2, -2}},
+		{{2.0f, 1.0f, 1.0f, -1.53f}, {2.0f, 1.1f, 1.1f, -3.0f}, {0.1f, -1.0f, 2, 2}},
 	};
 
-	std::vector<std::vector<std::vector<float>>> output_derivative = ActivationFunctions::ReLU_derivative(input);
+	expected = {
+		{{4.0f, 0.0f, 0.0f, -1.2f}, {0.0f, 1.123f, 0.0f, 3.0f}, {0.0f, 0.0f, 2.0f, 0.0f}},
+		{{0.0f, 0.0f, 0.0f, 0.0f}, {2.0f, 1.1f, 0.0f, 0.0f}, {0.1f, 0.0f, 0.0f, 2.0f}}
+	};
+	
+
+	std::vector<std::vector<std::vector<float>>> output_derivative = ActivationFunctions::ReLU_derivative(input, gradient);
 	if (!compare_matrices(output_derivative, expected)) {
 		std::cout << "[-] ReLU derivative test failed" << std::endl;
 	} else {
 		std::cout << "[+] ReLU derivative test passed" << std::endl;
 	}
-
 	
 	return 0;
 }

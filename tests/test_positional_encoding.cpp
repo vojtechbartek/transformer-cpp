@@ -2,9 +2,6 @@
 #include <cmath>
 #include <iostream>
 
-int LENGTH = 10;
-int EMBEDDING_DIM = 512;
-
 bool floatAlmostEqual(float a, float b, float epsilon = 0.0001) {
 	return std::fabs(a - b) < epsilon;
 }
@@ -59,14 +56,16 @@ bool checkPositionalEncodingValue(std::vector<std::vector<float>> &positionalEnc
 }
 
 int main() {
-	auto positionalEncoding = PositionalEncoding::generate(LENGTH, EMBEDDING_DIM);
-	if (checkPositionalEncodingProperties(positionalEncoding, LENGTH, EMBEDDING_DIM)) {
+	int length = 10;
+	int embedding_dim = 512;
+	std::vector<std::vector<float>> positionalEncoding = PositionalEncoding::generate(length, embedding_dim);
+	if (checkPositionalEncodingProperties(positionalEncoding, length, embedding_dim)) {
 		std::cout << "[+] Encoding properties Test passed" << std::endl;
 	} else {
 		std::cout << "[-] Test failed" << std::endl;
 	}
 
-	if (checkPositionalEncodingValue(positionalEncoding, LENGTH, EMBEDDING_DIM)) {
+	if (checkPositionalEncodingValue(positionalEncoding, length, embedding_dim)) {
 		std::cout << "[+] Encoding value Test passed" << std::endl;
 	} else {
 		std::cout << "[-] Test failed" << std::endl;
