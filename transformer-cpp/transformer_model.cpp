@@ -58,9 +58,25 @@ std::vector<std::vector<std::vector<float>>> Transformer::forward(const std::vec
     // Forward pass through each layer
     std::vector<std::vector<std::vector<float>>> output = input_encodings;
     for (int i = 0; i < num_layers; i++) {
+        std::cout << "  Layer " << i << std::endl;
         output = layers[i].forward(output);
     }
 
     return output;
+}
+
+std::vector<std::vector<std::vector<float>>> Transformer::backward(const std::vector<std::vector<std::vector<float>>>& grad_output) {
+    /*
+    * Backward pass of the transformer model
+    * 
+    * @param grad_output: The gradients of the loss with respect to the output of the model, (batch_size, seq_len, vocab_size)
+    * @return: The gradients of the loss with respect to the input of the model, (batch_size, seq_len, embedding_dim)
+    */
+    std::vector<std::vector<std::vector<float>>> grad = grad_output;
+    for (int i = num_layers - 1; i >= 0; i--) {
+        std::cout << "  Layer " << i << std::endl;
+        grad = layers[i].backward(grad);
+    }
+    return grad;
 }
 

@@ -20,7 +20,27 @@ int main() {
 
 	// Test forward pass
 	auto output = model.forward(input_tensor);
-	std::cout << "Output shape: " << output.size() << std::endl;
+	if (output.size() != batch_size || output[0].size() != seq_len || output[0][0].size() != vocab_size) {
+		std::cout << "[-] Forward test failed" << std::endl;
+		std::cout << "Expected shape: " << batch_size << " x " << seq_len << " x " << vocab_size << std::endl;
+		std::cout << "Got shape: " << output.size() << " x " << output[0].size() << " x " << output[0][0].size() << std::endl;
+	}
+	else {
+		std::cout << "[+] Forward test passed" << std::endl;
+	}
+	
+	// Test backward pass
+	auto grad_output = model.backward(output);
+	if (grad_output.size() != batch_size || grad_output[0].size() != seq_len || grad_output[0][0].size() != vocab_size) {
+		std::cout << "[-] Backward test failed" << std::endl;
+		std::cout << "Expected shape: " << batch_size << " x " << seq_len << " x " << vocab_size << std::endl;
+		std::cout << "Got shape: " << grad_output.size() << " x " << grad_output[0].size() << " x " << grad_output[0][0].size() << std::endl;
+	}
+	else {
+		std::cout << "[+] Backward test passed" << std::endl;
+	}
+
+
 	return 0;
 }
 	

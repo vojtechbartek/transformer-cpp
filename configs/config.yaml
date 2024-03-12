@@ -1,8 +1,8 @@
-batch_size: 4
+batch_size: 2
 vocab_size: 50257
-seq_len: 10
+seq_len: 5
 embedding_dim: 768
 num_layers: 2
 head_sizes: [128, 512]
-ff_hidden_dims: [128, 12000]
+ff_hidden_dims: [128, 1200]
 layer_output_dims: [128]

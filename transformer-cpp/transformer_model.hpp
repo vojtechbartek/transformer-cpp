@@ -9,7 +9,7 @@ class Transformer {
 public:
 	Transformer(const YAML::Node& config);
 	std::vector<std::vector<std::vector<float>>> forward(const std::vector<std::vector<std::vector<float>>>& input);
-	void backward(const std::vector<std::vector<std::vector<float>>>& grad_output);
+	std::vector<std::vector<std::vector<float>>> backward(const std::vector<std::vector<std::vector<float>>>& grad_output);
 	void update_weights(float learning_rate);
 
 private:
