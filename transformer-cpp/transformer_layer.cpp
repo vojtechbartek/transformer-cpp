@@ -3,8 +3,8 @@
 #include "positional_encoding.hpp"
 
 TransformerLayer::TransformerLayer(int input_dim, int embedding_dim, int head_size, int ff_hidden_dim, int output_dim) : 
-    self_attention(input_dim, head_size), 
-    feed_forward(input_dim, ff_hidden_dim, output_dim), 
+    self_attention(embedding_dim, head_size), 
+    feed_forward(head_size, ff_hidden_dim, output_dim), 
     input_dim_(input_dim), embedding_dim_(embedding_dim),
     head_size_(head_size), ff_hidden_dim_(ff_hidden_dim), output_dim_(output_dim) {
 
@@ -41,12 +41,10 @@ std::vector<std::vector<std::vector<float>>> TransformerLayer::forward(const std
     // Create mock mask, TODO: remove and implement properly
     std::vector<std::vector<std::vector<float>>> mask(modified_input.size(), std::vector<std::vector<float>>(modified_input[0].size(), std::vector<float>(modified_input[0][0].size(), 1.0))); 
     std::vector<std::vector<std::vector<float>>> self_attention_output = self_attention.forward(modified_input, mask);
-
     feed_forward_input_ = self_attention_output; // input to feed forward network, saving for backpropagation
 
     // Apply feed forward network
     std::vector<std::vector<std::vector<float>>> output = feed_forward.forward(self_attention_output);
-
     return output;
 }
 
@@ -65,4 +63,5 @@ std::vector<std::vector<std::vector<float>>> TransformerLayer::backward(const st
     std::vector<std::vector<std::vector<float>>> grad_self_attention = self_attention.backward(self_attention_input_, grad_feed_forward); // gradient of the loss w.r.t. the input of the self-attention layer, shape (batch_size, seq_len, embedding_dim)
 
     return grad_self_attention; // gradient of the loss w.r.t. the input of the transformer layer, shape (batch_size, seq_len, embedding_dim)
-    }
+}
+

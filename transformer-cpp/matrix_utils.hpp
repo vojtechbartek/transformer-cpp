@@ -58,7 +58,9 @@ namespace MatrixUtils {
     int a_rows = A.size(), a_cols = A[0].size(), b_rows = B.size(), b_cols = B[0].size();
     if (a_cols != b_rows) {
       // matrices are not compatible for multiplication, throw an exception and print the sizes of the matrices
-    std::cerr << "Matrix A and B are not compatible for multiplication, A columns = " << a_cols << " and B rows = " << b_rows << std::endl;
+      std::cerr << "Matrix A and B are not compatible for multiplication" << std::endl;
+      std::cerr << "A : " << A.size() << "x" << A[0].size() << std::endl;
+      std::cerr << "B : " << B.size() << "x" << B[0].size() << std::endl;
     throw std::invalid_argument("Matrix A and B are not compatible for multiplication");
     }
     
@@ -91,7 +93,9 @@ namespace MatrixUtils {
     
     for (int b = 0; b < batch_size; ++b) {
       if (batch_A[b][0].size() != embed_dim) {
-        std::cerr << "Matrix A and B are not compatible for multiplication, A columns = " << batch_A[b][0].size() << " and B rows = " << embed_dim << std::endl;
+        std::cerr << "Matrix A and B are not compatible for batched multiplication" << std::endl;
+        std::cerr << "A : " << batch_A.size() << "x" << batch_A[0].size() << "x" << batch_A[0][0].size() << std::endl;
+        std::cerr << "B : " << B.size() << "x" << B[0].size() << std::endl;
         throw std::invalid_argument("Matrix A and B are not compatible for multiplication");
       }
       for (int i = 0; i < seq_len; ++i) {
