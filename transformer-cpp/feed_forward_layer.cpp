@@ -97,3 +97,24 @@ std::vector<std::vector<float>> FeedForwardLayer::get_grad_biases() {
     return grad_biases;
 }
 
+void FeedForwardLayer::update_weights(float learning_rate) {
+    for (int i = 0; i < input_dim; i++) {
+        for (int j = 0; j < hidden_dim; j++) {
+            W1[i][j] -= learning_rate * grad_W1[i][j];
+        }
+    }
+
+    for (int i = 0; i < hidden_dim; i++) {
+        for (int j = 0; j < output_dim; j++) {
+            W2[i][j] -= learning_rate * grad_W2[i][j];
+        }
+    }
+
+    for (int i = 0; i < hidden_dim; i++) {
+        b1[i] -= learning_rate * grad_b1[i];
+    }
+
+    for (int i = 0; i < output_dim; i++) {
+        b2[i] -= learning_rate * grad_b2[i];
+    }
+}

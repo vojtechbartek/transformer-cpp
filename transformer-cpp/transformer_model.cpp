@@ -58,25 +58,33 @@ std::vector<std::vector<std::vector<float>>> Transformer::forward(const std::vec
     // Forward pass through each layer
     std::vector<std::vector<std::vector<float>>> output = input_encodings;
     for (int i = 0; i < num_layers; i++) {
-        std::cout << "  Layer " << i << std::endl;
         output = layers[i].forward(output);
     }
-
-    return output;
+   
+    // Apply softmax to the output of the last layer
+    std::vector<std::vector<std::vector<float>>> output_logits = MatrixUtils::rowSoftmax(output);
+    
+    return output_logits;
 }
 
-std::vector<std::vector<std::vector<float>>> Transformer::backward(const std::vector<std::vector<std::vector<float>>>& grad_output) {
+std::vector<std::vector<std::vector<float>>> Transformer::backward(const std::vector<std::vector<std::vector<float>>>& grad_output, const std::vector<std::vector<std::vector<float>>>& output_logits) {
     /*
     * Backward pass of the transformer model
     * 
     * @param grad_output: The gradients of the loss with respect to the output of the model, (batch_size, seq_len, vocab_size)
     * @return: The gradients of the loss with respect to the input of the model, (batch_size, seq_len, embedding_dim)
     */
-    std::vector<std::vector<std::vector<float>>> grad = grad_output;
+    std::vector<std::vector<std::vector<float>>> grad = MatrixUtils::rowSoftmaxDerivative(grad_output, output_logits);
     for (int i = num_layers - 1; i >= 0; i--) {
-        std::cout << "  Layer " << i << std::endl;
         grad = layers[i].backward(grad);
     }
     return grad;
+}
+
+void Transformer::update_weights(float learning_rate) {
+    // Update the weights of each layer
+    for (int i = 0; i < num_layers; i++) {
+        layers[i].update_weights(learning_rate);
+    }
 }
 

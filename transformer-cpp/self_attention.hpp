@@ -4,13 +4,14 @@
 class SelfAttention {
 public:
 	SelfAttention(int embed_dim, int head_size);
-	std::vector<std::vector<std::vector<float>>> forward(std::vector<std::vector<std::vector<float>>>& input,
-						std::vector<std::vector<std::vector<float>>>& mask);	
+	std::vector<std::vector<std::vector<float>>> forward(const std::vector<std::vector<std::vector<float>>>& input,
+						const std::vector<std::vector<std::vector<float>>>& mask);	
 	void updateParameters(float learning_rate);
 	std::vector<std::vector<std::vector<float>>> backward(const std::vector<std::vector<std::vector<float>>>& input, const std::vector<std::vector<std::vector<float>>>& grad_output); 
  
 	std::vector<std::vector<std::vector<float>>> getWeights() const; // returns {Wq, Wk, Wv}
 	std::vector<std::vector<std::vector<float>>> getSoftmaxOutput() const;
+	void update_weights(float learning_rate);
 
 private:
 	int embed_dim_;

@@ -272,40 +272,30 @@ namespace MatrixUtils {
     return softmax_scores;
   }
 
-  template <typename T>
-  std::vector<std::vector<T> > rowSoftmaxDerivative(const std::vector<std::vector<T>> &grad_output, 
-                                                    const std::vector<std::vector<T>> &softmax_output) {
-  /*
-    * Compute the derivative of the softmax function with respect to the input
-    * 
-    * @param grad_output: the gradient of the loss with respect to the output of the softmax function, shape (seq_len x embed_dim)
-    * @param softmax_output: the output of the softmax function, shape (seq_len x seq_len)
-    * @return: the gradient of the loss with respect to the input of the softmax function
-  */
-
+template <typename T>
+std::vector<std::vector<T>> rowSoftmaxDerivative(const std::vector<std::vector<T>>& grad_output,
+                                                  const std::vector<std::vector<T>>& softmax_output) {
   size_t seq_len = softmax_output.size();
   size_t embed_dim = softmax_output[0].size();
 
-  std::vector<std::vector<float>> grad_softmax(seq_len, std::vector<float>(embed_dim, 0.0));
+  std::vector<std::vector<T>> grad_softmax(seq_len, std::vector<T>(embed_dim, 0.0));
 
   for (size_t i = 0; i < seq_len; i++) {
     for (size_t j = 0; j < embed_dim; j++) {
+      T diagonal_term = softmax_output[i][j] * (1 - softmax_output[i][j]);
+      T off_diagonal_term = -softmax_output[i][j];
+
       T gradient = 0.0;
       for (size_t k = 0; k < embed_dim; k++) {
-        if (k == j) {
-          // Diagonal part of the Jacobian: softmax(x_i) * (1 - softmax(x_i))
-          gradient += grad_output[i][k] * softmax_output[i][j] * (1 - softmax_output[i][j]);
-        } else {
-          // Off-diagonal part of the Jacobian: -softmax(x_i) * softmax(x_j)
-          gradient += grad_output[i][k] * -softmax_output[i][j] * softmax_output[i][k];
-        }
-       }
-    grad_softmax[i][j] = gradient;
+        gradient += grad_output[i][k] * (k == j ? diagonal_term : off_diagonal_term * softmax_output[i][k]);
+      }
+      grad_softmax[i][j] = gradient;
     }
   }
   return grad_softmax;
 }
 
+  
 template <typename T>
 std::vector<std::vector<std::vector<T>>> rowSoftmaxDerivative(const std::vector<std::vector<std::vector<T>>>& grad_output, 
                                                               const std::vector<std::vector<std::vector<T>>>& softmax_output) {

@@ -21,8 +21,8 @@ SelfAttention::SelfAttention(int embed_dim, int head_size) : embed_dim_(embed_di
 }
 
 
-std::vector<std::vector<std::vector<float>>> SelfAttention::forward(std::vector<std::vector<std::vector<float>>>& input,
-                                                       std::vector<std::vector<std::vector<float>>>& mask) {
+std::vector<std::vector<std::vector<float>>> SelfAttention::forward(const std::vector<std::vector<std::vector<float>>>& input,
+                                                       const std::vector<std::vector<std::vector<float>>>& mask) {
   /*
    * Compute the forward pass of the self-attention layer
    *
@@ -129,4 +129,15 @@ std::vector<std::vector<std::vector<float>>> SelfAttention::getSoftmaxOutput() c
 std::vector<std::vector<std::vector<float>>> SelfAttention::getWeights() const {
   std::vector<std::vector<std::vector<float>>> weights = {Wq, Wk, Wv};
   return weights;
+}
+
+void SelfAttention::update_weights(float learning_rate) {
+  // Update the weights using the gradients
+  for (int i = 0; i < embed_dim_; i++) {
+    for (int j = 0; j < head_size_; j++) {
+      Wq[i][j] -= learning_rate * grad_Wq[i][j];
+      Wk[i][j] -= learning_rate * grad_Wk[i][j];
+      Wv[i][j] -= learning_rate * grad_Wv[i][j];
+    }
+  }
 }

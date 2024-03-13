@@ -10,6 +10,7 @@ public:
 
 	std::vector<std::vector<std::vector<float>>> get_grad_weights();
 	std::vector<std::vector<float>> get_grad_biases();
+	void update_weights(float learning_rate);
 
 private:
 	int input_dim, hidden_dim, output_dim;
