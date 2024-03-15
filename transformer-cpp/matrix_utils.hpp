@@ -240,7 +240,7 @@ namespace MatrixUtils {
     std::vector<std::vector<T> > softmax_scores(seq_len, std::vector<T>(embed_dim, 0));
     for (int i = 0; i < seq_len; ++i) {
       T max = *std::max_element(A[i].begin(), A[i].end()); // Find max element 
-      T sum = 0.0f;
+      T sum = 1e-10; // to avoid division by zero
       for (int j = 0; j < embed_dim; ++j) {
         // Subtract max from each element to avoid overflow
         softmax_scores[i][j] = std::exp(A[i][j] - max);
@@ -315,24 +315,4 @@ std::vector<std::vector<std::vector<T>>> rowSoftmaxDerivative(const std::vector<
   return grad_softmax;
 }
 
-
-  template <typename T>
-  void updateWeights(std::vector<std::vector<T>>& weights, const std::vector<std::vector<T>>& grad_weights, float learning_rate) {
-  /*
-    * Simple SGD update rule
-    *
-    * @param weights: the weights to be updated
-    * @param grad_weights: the gradients of the loss with respect to the weights
-    * @param learning_rate: the learning rate
-    * @return: None
-  */
-
-    int rows = weights.size(), cols = weights[0].size();
-    for (int i = 0; i < rows; ++i) {
-      for (int j = 0; j < cols; ++j) {
-        weights[i][j] -= learning_rate * grad_weights[i][j];
-      }
-    }
-  }
-  
 }

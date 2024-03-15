@@ -6,32 +6,47 @@ BIN_DIR=./bin
 SRC_DIR=./transformer-cpp
 TEST_DIR=./tests
 
-# Find all cpp files in SRC_DIR, compile them to BIN_DIR
-SOURCES := $(wildcard $(SRC_DIR)/*.cpp)
+# Find all cpp files in SRC_DIR
+SOURCES := $(filter-out $(SRC_DIR)/main.cpp,$(wildcard $(SRC_DIR)/*.cpp))
 HEADERS := $(wildcard $(SRC_DIR)/*.hpp)
 TESTS := $(wildcard $(TEST_DIR)/*.cpp)
-EXECUTABLES := $(patsubst $(TEST_DIR)/%.cpp,$(BIN_DIR)/%,$(TESTS))
+TEST_EXECUTABLES := $(patsubst $(TEST_DIR)/%.cpp,$(BIN_DIR)/%,$(TESTS))
+
+# Main executable
+MAIN_EXECUTABLE := $(BIN_DIR)/main
 
 # Default target
-all: $(EXECUTABLES)
+all: $(MAIN_EXECUTABLE) run_main
 
-# Rule to create executables from test source files
-$(BIN_DIR)/%: $(TEST_DIR)/%.cpp $(SOURCES) $(HEADERS)
+# Rule to create the main executable
+$(MAIN_EXECUTABLE): $(SRC_DIR)/main.cpp $(SOURCES)
 	@mkdir -p $(BIN_DIR)
-	$(CXX) $(CXXFLAGS) -I$(SRC_DIR) $< $(SOURCES) -o $@
+	$(CXX) $(CXXFLAGS) $^ -lyaml-cpp -o $@
+	@echo "   Compiled main executable successfully!"
+
+# Rule to create test executables
+$(BIN_DIR)/%: $(TEST_DIR)/%.cpp $(SOURCES)
+	@mkdir -p $(BIN_DIR)
+	$(CXX) $(CXXFLAGS) -I$(SRC_DIR) $< $(SOURCES) -lyaml-cpp -o $@
 	@echo "   Compiled "$<" successfully!"
 
+# Target to build test executables
+test: $(TEST_EXECUTABLES) run_tests
+
 # Target to run all tests
-test: all
+run_tests: test
 	@echo "Running tests..."
-	@for test in $(EXECUTABLES); do \
+	@for test in $(TEST_EXECUTABLES); do \
 		echo "==== Running $$test ===="; \
-		./$$test; \
-	done
+			./$$test; \
+    done
+
+# Target to run main executable
+run_main: $(MAIN_EXECUTABLE)
+	@echo "Running main executable..."
+	@./$(MAIN_EXECUTABLE)
 
 # Clean Up
 clean:
 	@echo "Cleaning up..."
 	rm -rf $(BIN_DIR)/*
-
-
