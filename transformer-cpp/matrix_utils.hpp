@@ -2,6 +2,8 @@
 #include <vector>
 #include <iostream>
 #include <stdexcept>
+#include <algorithm>
+#include <cmath>
 
 
 namespace MatrixUtils {
