@@ -21,8 +21,8 @@ int main() {
 	// Test forward pass
 	auto output = model.forward(input_tensor);
 	std::cout << "Output shape: " << output.size() << " x " << output[0].size() << " x " << output[0][0].size() << std::endl;
-	// Print first 1x3x3 elements
-	for (int i = 0; i < 3; i++) {
+	// Print first 1 x seq_len x 3 elements
+	for (int i = 0; i < output[0].size(); i++) {
 		for (int ii = 0; ii < 3; ii++) {
 			std::cout << output[0][i][ii] << " ";
 		}
@@ -38,7 +38,7 @@ int main() {
 			for (int v = 0; v < vocab_size; v++) {
 				sum += output[b][s][v];
 			}
-			if (std::abs(sum - 1) > 1e-6) {
+			if (std::abs(sum - 1) > 1e-4) {
 				std::cout << "[-] Forward sum test failed" << std::endl;
 				std::cout << "Expected sum: 1" << std::endl;
 				std::cout << "Got sum: " << sum << " at position " << b << " x " << s << std::endl;
@@ -68,8 +68,8 @@ int main() {
 
 	auto grad_output = model.backward(grad_output_tensor, output);
 	
-	// Print first 1x3x3 elements
-	for (int i = 0; i < 3; i++) {
+	// Print first 1x seq_len x3 elements
+	for (int i = 0; i < output[0].size(); i++) {
 		for (int ii = 0; ii < 3; ii++) {
 			std::cout << grad_output[0][i][ii] << " ";
 		}

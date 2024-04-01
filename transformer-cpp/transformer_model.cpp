@@ -5,6 +5,13 @@
 #include <sys/wait.h>
 
 Transformer::Transformer(const YAML::Node& config) {
+    /*
+     * Constructor for the Transformer model
+     *
+     * @param config: A YAML node containing the configuration parameters for the model
+     * and the cuda kernels
+     */
+    
     num_layers = config["num_layers"].as<int>();
     batch_size = config["batch_size"].as<int>();
     seq_len = config["seq_len"].as<int>();

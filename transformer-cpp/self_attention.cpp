@@ -1,6 +1,9 @@
 #include "self_attention.hpp"
-#include "matrix_utils.hpp"
 #include <random>
+#ifdef USE_CUDA
+#include "../cuda/include/cuda_helpers.hpp"
+#endif
+#include "matrix_utils.hpp"
 
 SelfAttention::SelfAttention(int embed_dim, int head_size) : embed_dim_(embed_dim), head_size_(head_size) {
     // Initialize the weights

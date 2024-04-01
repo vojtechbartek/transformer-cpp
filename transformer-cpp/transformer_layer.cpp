@@ -1,6 +1,4 @@
 #include "transformer_layer.hpp"
-#include "matrix_utils.hpp"
-#include "positional_encoding.hpp"
 
 TransformerLayer::TransformerLayer(int input_dim, int embedding_dim, int head_size, int ff_hidden_dim, int output_dim) : 
     self_attention(embedding_dim, head_size), 
