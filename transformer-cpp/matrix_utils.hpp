@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <iostream>
+#include <stdexcept>
 
 
 namespace MatrixUtils {
@@ -240,7 +241,8 @@ namespace MatrixUtils {
     std::vector<std::vector<T> > softmax_scores(seq_len, std::vector<T>(embed_dim, 0));
     for (int i = 0; i < seq_len; ++i) {
       T max = *std::max_element(A[i].begin(), A[i].end()); // Find max element 
-      T sum = 1e-10; // to avoid division by zero
+      // T sum = 1e-10; // to avoid division by zero
+      T sum = 0.0;
       for (int j = 0; j < embed_dim; ++j) {
         // Subtract max from each element to avoid overflow
         softmax_scores[i][j] = std::exp(A[i][j] - max);

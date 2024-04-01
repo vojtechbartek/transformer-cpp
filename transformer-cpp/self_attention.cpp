@@ -5,7 +5,7 @@
 SelfAttention::SelfAttention(int embed_dim, int head_size) : embed_dim_(embed_dim), head_size_(head_size) {
     // Initialize the weights
     std::default_random_engine generator(std::random_device{}());
-    std::normal_distribution<float> distribution(0.0, 0.3); // mean=0, stddev=0.1
+    std::normal_distribution<float> distribution(0.0, 0.01); // mean=0, stddev=0.1
     
     Wq = std::vector<std::vector<float>>(embed_dim, std::vector<float>(head_size));
     Wk = std::vector<std::vector<float>>(embed_dim, std::vector<float>(head_size));

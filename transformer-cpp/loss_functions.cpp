@@ -11,14 +11,14 @@ float cross_entropy_loss(const std::vector<std::vector<std::vector<float>>>& out
     assert(batch_size == targets.size());
     assert(seq_len == targets[0].size());
 
-    float eps = 1e-8;
+    //float eps = 1e-8;
 
     for (int i = 0; i < batch_size; i++) {
         for (int j = 0; j < seq_len; j++) {
             int target_idx = targets[i][j];
             assert(target_idx >= 0 && target_idx < output_logits[i][j].size());
-            loss -= std::log(std::max(output_logits[i][j][target_idx], eps));
-            // loss -= std::log(output_logits[i][j][target_idx]);
+            // loss -= std::log(std::max(output_logits[i][j][target_idx], eps));
+            loss -= std::log(output_logits[i][j][target_idx]);
         }
     }
 

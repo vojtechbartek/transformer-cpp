@@ -11,7 +11,7 @@ FeedForwardLayer::FeedForwardLayer(int input_dim, int hidden_dim, int output_dim
 void FeedForwardLayer::init_weights() {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::normal_distribution<float> dist(0, 0.3); // mean = 0, std = 0.1
+    std::normal_distribution<float> dist(0, 0.1); // mean = 0, std = 0.1
     
     W1 = std::vector<std::vector<float>>(input_dim, std::vector<float>(hidden_dim));
     W2 = std::vector<std::vector<float>>(hidden_dim, std::vector<float>(output_dim));

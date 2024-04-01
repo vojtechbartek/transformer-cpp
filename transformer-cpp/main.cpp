@@ -82,8 +82,10 @@ int main() {
                             max_index = v;
                         }
                     }
-                    std::cout << max_index << " " << " with value " << max_value << std::endl;
+                    std::cout << "Predicted: " << max_index << " " << " with probability " << max_value << std::endl;
                     std::cout << "Target: " << target_data_batched[b][s] << std::endl;
+                    std::cout << "Target predicted probability: " << output_logits[b][s][target_data_batched[b][s]] << std::endl;
+                    std::cout << "---------" << std::endl;
                 }   
             }
                         

@@ -1,12 +1,12 @@
-batch_size: 2
+batch_size: 1
 vocab_size: 50257
-seq_len: 2
+seq_len: 1
 embedding_dim: 768
 num_layers: 2
 head_sizes: [128, 512]
 ff_hidden_dims: [128, 128]
 layer_output_dims: [128]
 num_epochs: 4
-learning_rate: 0.00001
+learning_rate: 0.0001
 input_data_file: "dataset/embeddings.csv"
 target_data_file: "dataset/input_ids.csv"
