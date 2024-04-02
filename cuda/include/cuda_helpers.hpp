@@ -10,7 +10,7 @@
 
 namespace CudaHelpers {
 	template <typename T>
-	void flatten3DMatrix(const std::vector<std::vector<std::vector<T>>>& matrix, T* flattened_matrix, int &size) {
+	void flatten3DMatrix(const std::vector<std::vector<std::vector<T>>>& matrix, T* flattened_matrix) {
 		int batch_size = matrix.size();
 		int seq_len = matrix[0].size();
 		int embed_dim = matrix[0][0].size();	
@@ -115,6 +115,7 @@ namespace CudaHelpers {
 	cudaFree(d_matrix2);
 	cudaFree(d_result);
 	
+	return result;	
 	}
 
 	template <typename T>
@@ -146,8 +147,8 @@ namespace CudaHelpers {
 		cudaMallocManaged(&d_result, result_size * sizeof(T));
 
 		// Flatten the matrices
-		flatten3DMatrix(matrix1, d_matrix1, size1);
-		flatten3DMatrix(matrix2, d_matrix2, size2);
+		flatten3DMatrix(matrix1, d_matrix1);
+		flatten3DMatrix(matrix2, d_matrix2);
 		
 		// Call the kernel
 		dim3 grid(1,1,1);
@@ -208,7 +209,7 @@ namespace CudaHelpers {
 		cudaMallocManaged(&d_result, result_size * sizeof(T));
 
 		// Flatten the matrices
-		flatten3DMatrix(matrix1, d_matrix1, size1);
+		flatten3DMatrix(matrix1, d_matrix1);
 		flatten2DMatrix(matrix2, d_matrix2);
 		
 		// Call the kernel
@@ -266,8 +267,8 @@ namespace CudaHelpers {
 		cudaMallocManaged(&d_result, size * sizeof(T));
 
 		// Flatten the matrices
-		flatteni2DMatrix(matrix1, d_matrix1);
-		flatteni2DMatrix(matrix2, d_matrix2);
+		flatten2DMatrix(matrix1, d_matrix1);
+		flatten2DMatrix(matrix2, d_matrix2);
 
 		// Call the kernel
 		dim3 grid(1,1);
@@ -276,7 +277,7 @@ namespace CudaHelpers {
 		grid.x = std::ceil(static_cast<float>(M) / static_cast<float>(threads.x));
 		grid.y = std::ceil(static_cast<float>(N) / static_cast<float>(threads.y));
 		
-		MatrixUtils::matrix_add_kernel(d_matrix1, d_matrix2, d_result, M, N);
+		MatrixUtils::matrix_add_kernel<<<grid, threads>>>(d_matrix1, d_matrix2, d_result, M, N);
 
 		cudaError_t error = cudaPeekAtLastError();
 		if (error != cudaSuccess) {
@@ -324,8 +325,8 @@ namespace CudaHelpers {
 		cudaMallocManaged(&d_result, size * sizeof(T));
 
 		// Flatten the matrices
-		flatteni3DMatrix(matrix1, d_matrix1);
-		flatteni3DMatrix(matrix2, d_matrix2);
+		flatten3DMatrix(matrix1, d_matrix1);
+		flatten3DMatrix(matrix2, d_matrix2);
 
 		// Call the kernel
 		dim3 grid(1,1,1);
@@ -335,7 +336,7 @@ namespace CudaHelpers {
 		grid.x = std::ceil(static_cast<float>(M) / static_cast<float>(threads.x));
 		grid.y = std::ceil(static_cast<float>(N) / static_cast<float>(threads.y));
 
-		MatrixUtils::matrix_add_kernel(d_matrix1, d_matrix2, d_result, B, M, N);
+		MatrixUtils::matrix_add_kernel<<<grid, threads>>>(d_matrix1, d_matrix2, d_result, B, M, N);
 
 		cudaError_t error = cudaPeekAtLastError();
 		if (error != cudaSuccess) {
@@ -346,7 +347,7 @@ namespace CudaHelpers {
 		cudaDeviceSynchronize();
 
 		// Move the result from flat vector to 2D tensor
-		std::vector<std::vector<T>> result = unflatten3DMatrix(d_result, B, M, N);
+		std::vector<std::vector<std::vector<T>>> result = unflatten3DMatrix(d_result, B, M, N);
 
 		// Free the gpu memory
 		cudaFree(d_matrix1);

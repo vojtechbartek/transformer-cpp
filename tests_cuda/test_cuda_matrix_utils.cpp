@@ -134,8 +134,6 @@ bool random_matrix_addition3D_test(int b, int m, int n) {
 }
 	
 
-bool random_batch_
-
 int main() {
 	int b, m, k, p;	
 	std::random_device rd;
