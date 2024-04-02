@@ -4,7 +4,7 @@
 namespace MatrixUtils {
 
 	template <typename T>
-	__global void mm_kernel(const T *A, const T *B, T *C, int M, int K, int P) {
+	__global__ void mm_kernel(const T *A, const T *B, T *C, int M, int K, int P) {
 		/*
 		 * Kernel for matrix multiplication,
 		 * each thread computes one cell of the output matrix C

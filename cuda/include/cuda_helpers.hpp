@@ -217,8 +217,8 @@ namespace CudaHelpers {
 
 		grid.x = std::ceil(static_cast<float>(M) / static_cast<float>(threads.x));
 		grid.y = std::ceil(static_cast<float>(N) / static_cast<float>(threads.y));
-
-		MatrixUtils::matrix_add_kernel(T* matrix1, T* matrix2, T* result, M, N);
+		
+		MatrixUtils::matrix_add_kernel(d_matrix1, d_matrix2, d_result, M, N);
 
 		cudaError_t error = cudaPeekAtLastError();
 		if (error != cudaSuccess) {
@@ -277,7 +277,7 @@ namespace CudaHelpers {
 		grid.x = std::ceil(static_cast<float>(M) / static_cast<float>(threads.x));
 		grid.y = std::ceil(static_cast<float>(N) / static_cast<float>(threads.y));
 
-		MatrixUtils::matrix_add_kernel(T* matrix1, T* matrix2, T* result, B, M, N);
+		MatrixUtils::matrix_add_kernel(d_matrix1, d_matrix2, d_result, B, M, N);
 
 		cudaError_t error = cudaPeekAtLastError();
 		if (error != cudaSuccess) {
