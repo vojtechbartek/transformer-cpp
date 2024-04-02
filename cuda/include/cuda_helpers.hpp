@@ -59,6 +59,64 @@ namespace CudaHelpers {
 		return matrix;
 	}
 
+	
+	template <typename T>
+	std::vector<std::vector<T>> matrixMultiplication(const std::vector<std::vector<T>>& matrix1, const std::vector<std::vector<T>>& matrix2) {
+	/*
+	 * Helper function to perform 2D matrix multiplication on the GPU
+	 * @param matrix1: M x N 
+	 * @param matrix2: N x P
+	 * @returns: M x P matrix result of matrix1 * matrix2
+	 */
+	
+	int M = matrix1.size();
+	int N = matrix1[0].size();
+	int P = matrix2[0].size();
+	assert(matrix2.size() == N);
+
+	int size1 = M * N;
+	int size2 = N * P;
+	int result_size = M * P;
+	assert(size1 > 0);
+	assert(size2 > 0);
+
+	// Allocate gpu memory
+	T *d_matrix1, *d_matrix2, *d_result;
+	cudaMallocManaged(&d_matrix1, size1 * sizeof(T));
+	cudaMallocManaged(&d_matrix2, size2 * sizeof(T));
+	cudaMallocManaged(&d_result, result_size * sizeof(T));
+	
+	// Flatten the matrices
+	flatten2DMatrix(matrix1, d_matrix1);
+	flatten2DMatrix(matrix2, d_matrix2);
+
+	// Call the kernel
+	dim3 grid(1,1);
+	dim3 threads(CudaConfig::BLOCK_SIZE, CudaConfig::BLOCK_SIZE);
+
+	grid.x = std::ceil(static_cast<float>(M) / static_cast<float>(threads.x));
+	grid.y = std::ceil(static_cast<float>(P) / static_cast<float>(threads.y));
+
+	MatrixUtils::mm_kernel<<<grid, threads>>>(d_matrix1, d_matrix2, d_result, M, N, P);
+
+	cudaError_t error = cudaPeekAtLastError();
+	if (error != cudaSuccess) {
+		std::cerr << "CUDA error: " << cudaGetErrorString(error) << std::endl;
+		std::exit(1);
+	}
+
+	cudaDeviceSynchronize();
+
+	// Move the result from flat vector to 2D tensor
+	std::vector<std::vector<T>> result = unflatten2DMatrix(d_result, M, P);
+
+	// Free the gpu memory
+	cudaFree(d_matrix1);
+	cudaFree(d_matrix2);
+	cudaFree(d_result);
+	
+	}
+
 	template <typename T>
 	std::vector<std::vector<std::vector<T>>> batchMatrixMultiplication(const std::vector<std::vector<std::vector<T>>>& matrix1, const std::vector<std::vector<std::vector<T>>>& matrix2) {
 		/*
