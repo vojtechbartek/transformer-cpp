@@ -24,6 +24,22 @@ bool all_close(const std::vector<std::vector<std::vector<float>>> &a,
   return true;
 }
 
+bool all_close(const std::vector<std::vector<float>> &a,
+			   const std::vector<std::vector<float>> &b) {
+	if (a.size() != b.size()) {
+		return false;
+	}
+
+	for (size_t i = 0; i < a.size(); i++) {
+		for (size_t j = 0; j < a[i].size(); j++) {
+			if (std::abs(a[i][j] - b[i][j]) > 1e-6) {
+				return false;
+			}
+		}
+	}
+  return true;
+}
+
 std::vector<std::vector<float>> create_random_matrix(int m, int k) {
 	std::random_device rd;
 	std::default_random_engine generator(rd());
@@ -67,13 +83,33 @@ void print_matrix(const std::vector<std::vector<std::vector<float>>> &matrix) {
 	}
 }
 
-bool random_batch_matrix_multiplication_test(int b, int m, int k, int p) {
+bool random_matrix_multiplication3D_test(int b, int m, int k, int p) {
 	std::vector<std::vector<std::vector<float>>> A = create_random_matrix(b, m, k);
 	std::vector<std::vector<std::vector<float>>> B = create_random_matrix(b, k, p);
 
 	std::vector<std::vector<std::vector<float>>> C_cuda = CudaHelpers::batchMatrixMultiplication(A, B);
 	std::vector<std::vector<std::vector<float>>> C_cpu = MatrixUtils::batchMatrixMultiplication(A, B);
 	
+	return all_close(C_cuda, C_cpu);
+}
+
+bool random_matrix_multiplication2D_test(int m, int k, int p) {
+	std::vector<std::vector<float>> A = create_random_matrix(m, k);
+	std::vector<std::vector<float>> B = create_random_matrix(k, p);
+
+	std::vector<std::vector<float>> C_cuda = CudaHelpers::matrixMultiplication(A, B);
+	std::vector<std::vector<float>> C_cpu = MatrixUtils::matrixMultiplication(A, B);
+
+	return all_close(C_cuda, C_cpu);
+}
+
+bool random_batch_matrix_multiplication_test(int b, int m, int k, int p) {
+	std::vector<std::vector<std::vector<float>>> A = create_random_matrix(b, m, k);
+	std::vector<std::vector<float>> B = create_random_matrix(k, p);
+
+	std::vector<std::vector<std::vector<float>>> C_cuda = CudaHelpers::batchMatrixMultiplication(A, B);
+	std::vector<std::vector<std::vector<float>>> C_cpu = MatrixUtils::batchMatrixMultiplication(A, B);
+
 	return all_close(C_cuda, C_cpu);
 }
 
@@ -86,7 +122,19 @@ bool random_matrix_addition2D_test(int m, int n) {
 
 	return all_close(C_cuda, C_cpu);
 }
+
+bool random_matrix_addition3D_test(int b, int m, int n) {
+	std::vector<std::vector<std::vector<float>>> A = create_random_matrix(b, m, n);
+	std::vector<std::vector<std::vector<float>>> B = create_random_matrix(b, m, n);
 	
+	std::vector<std::vector<std::vector<float>>> C_cuda = CudaHelpers::matrixAddition(A, B);
+	std::vector<std::vector<std::vector<float>>> C_cpu = MatrixUtils::matrixAddition(A, B);
+
+	return all_close(C_cuda, C_cpu);
+}
+	
+
+bool random_batch_
 
 int main() {
 	int b, m, k, p;	
@@ -94,30 +142,74 @@ int main() {
 	std::default_random_engine generator(rd());
 	std::uniform_int_distribution<int> distribution(1, 5);
 	
-	// Run 10 random tests for matrix multiplication
-	for (int i = 0; i < 10; i++) {
+	int num_tests = 10;
+		
+	// Run num_tests random tests for batch matrix multiplication
+	// 3D * 2D
+	for (int i = 0; i < num_tests; i++) {
 		b = distribution(generator);
 		m = distribution(generator);
 		k = distribution(generator);
 		p = distribution(generator);
 
 		if (!random_batch_matrix_multiplication_test(b, m, k, p)) {
-			std::cout << "[-] Matrix Multiplication Test failed" << std::endl;
+			std::cout << "[-] Batch Matrix Multiplication Test failed" << std::endl;
 			return 1;
 		}
 	}	
-	std::cout << "[+] Matrix Multiplication Test passed" << std::endl;
+	std::cout << "[+] Batch Matrix Multiplication Test passed" << std::endl;
 	
-	// Run 10 random tests for matrix addition 2D
-	for (int i = 0; i < 10; i++) {
+	// Run num_tests random tests for matrix multiplication 2D
+	for (int i = 0; i < num_tests; i++) {
+		m = distribution(generator);
+		k = distribution(generator);
+		p = distribution(generator);
+
+		if (!random_matrix_multiplication2D_test(m, k, p)) {
+			std::cout << "[-] Matrix Multiplication 2D Test failed" << std::endl;
+			return 1;
+		}
+	}
+	std::cout << "[+] Matrix Multiplication 2D Test passed" << std::endl;
+
+	// Run num_tests random tests for matrix multiplication 3D
+	for (int i = 0; i < num_tests; i++) {
+		b = distribution(generator);
+		m = distribution(generator);
+		k = distribution(generator);
+		p = distribution(generator);
+
+		if (!random_matrix_multiplication3D_test(b, m, k, p)) {
+			std::cout << "[-] Matrix Multiplication 3D Test failed" << std::endl;
+			return 1;
+		}
+	}
+	std::cout << "[+] Matrix Multiplication 3D Test passed" << std::endl;
+
+	// Run num_tests random tests for matrix addition 2D
+	for (int i = 0; i < num_tests; i++) {
 		m = distribution(generator);
 		k = distribution(generator);
 		
 		if (!random_matrix_addition2D_test(m, k)) {
-			std::cout << "[-] Matrix Addition Test failed" << std::endl;
+			std::cout << "[-] Matrix Addition 2D Test failed" << std::endl;
 			return 1;
 		}
 	}
+	std::cout << "[+] Matrix Addition Test passed" << std::endl;
+
+	// Run 10 random tests for matrix addition 3D
+	for (int i = 0; i < 10; i++) {
+		b = distribution(generator);
+		m = distribution(generator);
+		k = distribution(generator);
+		
+		if (!random_matrix_addition3D_test(b, m, k)) {
+			std::cout << "[-] Matrix Addition 3D Test failed" << std::endl;
+			return 1;
+		}
+	}
+
 
 	return 0;
 

@@ -34,3 +34,4 @@
 bin/ # binaries
 
 .DS_Store
+todo.md
