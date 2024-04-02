@@ -24,6 +24,20 @@ bool all_close(const std::vector<std::vector<std::vector<float>>> &a,
   return true;
 }
 
+std::vector<std::vector<float>> create_random_matrix(int m, int k) {
+	std::random_device rd;
+	std::default_random_engine generator(rd());
+	std::uniform_real_distribution<float> distribution(-1.0, 1.0);
+	
+	std::vector<std::vector<float>> matrix(m, std::vector<float>(k));
+	for (int j = 0; j < m; j++) {
+		for (int l = 0; l < k; l++) {
+			matrix[j][l] = distribution(generator);
+		}
+	}
+	return matrix;
+}
+
 std::vector<std::vector<std::vector<float>>> create_random_matrix(int b, int m, int k) {
 	std::random_device rd;
 	std::default_random_engine generator(rd());
@@ -60,17 +74,19 @@ bool random_batch_matrix_multiplication_test(int b, int m, int k, int p) {
 	std::vector<std::vector<std::vector<float>>> C_cuda = CudaHelpers::batchMatrixMultiplication(A, B);
 	std::vector<std::vector<std::vector<float>>> C_cpu = MatrixUtils::batchMatrixMultiplication(A, B);
 	
-	if (!all_close(C_cuda, C_cpu)) {
-		std::cout << "[-] Cuda and CPU results are not equal" << std::endl;
-		std::cout << "Cuda result:" << std::endl;
-		print_matrix(C_cuda);
-		std::cout << "CPU result:" << std::endl;
-		print_matrix(C_cpu);
-		return false;
-	}
+	return all_close(C_cuda, C_cpu);
+}
+
+bool random_matrix_addition2D_test(int m, int n) {
+	std::vector<std::vector<float>> A = create_random_matrix(m, n);
+	std::vector<std::vector<float>> B = create_random_matrix(m, n);
+	
+	std::vector<std::vector<float>> C_cuda = CudaHelpers::matrixAddition(A, B);
+	std::vector<std::vector<float>> C_cpu = MatrixUtils::matrixAddition(A, B);
 
 	return all_close(C_cuda, C_cpu);
 }
+	
 
 int main() {
 	int b, m, k, p;	
@@ -91,6 +107,18 @@ int main() {
 		}
 	}	
 	std::cout << "[+] Matrix Multiplication Test passed" << std::endl;
+	
+	// Run 10 random tests for matrix addition 2D
+	for (int i = 0; i < 10; i++) {
+		m = distribution(generator);
+		k = distribution(generator);
+		
+		if (!random_matrix_addition2D_test(m, k)) {
+			std::cout << "[-] Matrix Addition Test failed" << std::endl;
+			return 1;
+		}
+	}
+
 	return 0;
 
 }

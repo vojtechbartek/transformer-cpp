@@ -98,4 +98,31 @@ namespace CudaHelpers {
 		return result;
 		
 	}
+	
+	template <typename T>
+	std::vector<std::vector<T>> matrixAddition(const std::vector<std::vector<T>>& matrix1, const std::vector<std::vector<T>>& matrix2) {
+	/*
+ 	* Helper function to perform 2D matrix element-wise addition on the GPU
+ 	* @param matrix1: M x N
+ 	* @param matrix2: M x N
+ 	* @returns: M x N matrix result of matrix1 + matrix2
+ 	*/
+	
+	int M = matrix1.size();
+	int N = matrix1[0].size();
+
+	assert(matrix2.size() == M);
+	assert(matrix2[0].size() == N);
+
+	int size = M * N;
+	assert(size > 0);
+
+	// Allocate memory
+	T *d_matrix1, *d_matrix2, *d_result;
+	cudaMallocManaged(&d_matrix1, size * sizeof(T));
+	cudaMallocManaged(&d_matrix2, size * sizeof(T));
+	cudaMallocManaged(&d_result, size * sizeof(T));
+
+	// Flatten the matrices
+	flatteni2DMatrix
 }

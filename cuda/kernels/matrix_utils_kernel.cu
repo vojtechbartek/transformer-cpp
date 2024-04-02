@@ -28,6 +28,28 @@ namespace MatrixUtils {
 		}
 		C[b * M * P + x * P + y] = sum;
 	}
+	
+	template <typename T>
+	__global__ void matrix_add_kernel(const T *A, const T *B, T *C, int M, int N) {
+		/*
+		 * Kernel for element-wise 2D matrix addition,
+		 * each thread computes one cell of the output matrix C
+		 * @param A: flat array of matrix of shape M x N
+		 * @param B: flat array of matrix of shape M x N
+		 * @param C: flat array of matrix of shape M x N, result of A + B
+		 * @param M: number of rows
+		 * @param N: number of columns
+		 */
+		
+		size_t x = blockIdx.x * blockDim.x + threadIdx.x;
+		size_t y = blockIdx.y * blockDim.y + threadIdx.y;
+		
+		if ((x >= M) || (y >= N)) {
+			return;
+		}
+		
+		C[x * M + y] = A[x * M + y] + B[x * M + y];
+	}
 
 }
 
