@@ -97,7 +97,7 @@ namespace CudaHelpers {
 	grid.x = std::ceil(static_cast<float>(M) / static_cast<float>(threads.x));
 	grid.y = std::ceil(static_cast<float>(P) / static_cast<float>(threads.y));
 
-	MatrixUtils::mm_kernel<<<grid, threads>>>(d_matrix1, d_matrix2, d_result, M, N, P);
+	Kernel::mm_kernel<<<grid, threads>>>(d_matrix1, d_matrix2, d_result, M, N, P);
 
 	cudaError_t error = cudaPeekAtLastError();
 	if (error != cudaSuccess) {
@@ -158,7 +158,7 @@ namespace CudaHelpers {
 		grid.x = std::ceil(static_cast<float>(M) / static_cast<float>(threads.x));
 		grid.y = std::ceil(static_cast<float>(K) / static_cast<float>(threads.y));
 
-		MatrixUtils::mm_kernel<<<grid, threads>>>(d_matrix1, d_matrix2, d_result, batch_size, M, K, P);
+		Kernel::mm_kernel<<<grid, threads>>>(d_matrix1, d_matrix2, d_result, batch_size, M, K, P);
 		
 		cudaError_t error = cudaPeekAtLastError();
 		if (error != cudaSuccess) {
@@ -220,7 +220,7 @@ namespace CudaHelpers {
 		grid.x = std::ceil(static_cast<float>(M) / static_cast<float>(threads.x));
 		grid.y = std::ceil(static_cast<float>(K) / static_cast<float>(threads.y));
 		
-		MatrixUtils::bmm_kernel<<<grid, threads>>>(d_matrix1, d_matrix2, d_result, batch_size, M, K, P);
+		Kernel::bmm_kernel<<<grid, threads>>>(d_matrix1, d_matrix2, d_result, batch_size, M, K, P);
 		
 		cudaError_t error = cudaPeekAtLastError();
 		if (error != cudaSuccess) {
@@ -277,7 +277,7 @@ namespace CudaHelpers {
 		grid.x = std::ceil(static_cast<float>(M) / static_cast<float>(threads.x));
 		grid.y = std::ceil(static_cast<float>(N) / static_cast<float>(threads.y));
 		
-		MatrixUtils::matrix_add_kernel<<<grid, threads>>>(d_matrix1, d_matrix2, d_result, M, N);
+		Kernel::matrix_add_kernel<<<grid, threads>>>(d_matrix1, d_matrix2, d_result, M, N);
 
 		cudaError_t error = cudaPeekAtLastError();
 		if (error != cudaSuccess) {
@@ -336,7 +336,7 @@ namespace CudaHelpers {
 		grid.x = std::ceil(static_cast<float>(M) / static_cast<float>(threads.x));
 		grid.y = std::ceil(static_cast<float>(N) / static_cast<float>(threads.y));
 
-		MatrixUtils::matrix_add_kernel<<<grid, threads>>>(d_matrix1, d_matrix2, d_result, B, M, N);
+		Kernel::matrix_add_kernel<<<grid, threads>>>(d_matrix1, d_matrix2, d_result, B, M, N);
 
 		cudaError_t error = cudaPeekAtLastError();
 		if (error != cudaSuccess) {
@@ -386,7 +386,7 @@ namespace CudaHelpers {
 	grid.z = batch_size;
 	grid.x = std::ceil(static_cast<float>(M * N) / threads);
 
-	MatrixUtils::row_softmax_kernel<<<grid, threads>>>(d_matrix, d_result, batch_size, M, N);
+	Kernel::row_softmax_kernel<<<grid, threads>>>(d_matrix, d_result, batch_size, M, N);
 
 	cudaError_t error = cudaPeekAtLastError();
 	if (error != cudaSuccess) {
@@ -429,7 +429,7 @@ namespace CudaHelpers {
 	// Call the kernel
 	int threads = CudaConfig::BLOCK_SIZE * CudaConfig::BLOCK_SIZE;
 	int blocks = std::ceil(static_cast<float>(M * N) / threads);
-	MatrixUtils::row_softmax_kernel<<<blocks, threads>>>(d_matrix, d_result, M, N);
+	Kernel::row_softmax_kernel<<<blocks, threads>>>(d_matrix, d_result, M, N);
 
 	cudaError_t error = cudaPeekAtLastError();
 	if (error != cudaSuccess) {
@@ -475,7 +475,7 @@ namespace CudaHelpers {
 	// Call the kernel
 	int threads = CudaConfig::BLOCK_SIZE * CudaConfig::BLOCK_SIZE;
 	int blocks = std::ceil(static_cast<float>(M * N) / threads);
-	MatrixUtils::row_softmax_derivative_kernel<<<blocks, threads>>>(d_softmax_output, d_grad_output, d_result, M, N);
+	Kernel::row_softmax_derivative_kernel<<<blocks, threads>>>(d_softmax_output, d_grad_output, d_result, M, N);
 
 	cudaError_t error = cudaPeekAtLastError();
 	if (error != cudaSuccess) {
@@ -527,7 +527,7 @@ namespace CudaHelpers {
 	grid.z = batch_size;
 	grid.x = std::ceil(static_cast<float>(M * N) / threads);
 
-	MatrixUtils::row_softmax_derivative_kernel<<<grid, threads>>>(d_softmax_output, d_grad_output, d_result, batch_size, M, N);
+	Kernel::row_softmax_derivative_kernel<<<grid, threads>>>(d_softmax_output, d_grad_output, d_result, batch_size, M, N);
 
 	cudaError_t error = cudaPeekAtLastError();
 	if (error != cudaSuccess) {
@@ -575,7 +575,7 @@ namespace CudaHelpers {
 	grid.x = std::ceil(static_cast<float>(M) / static_cast<float>(threads.x));
 	grid.y = std::ceil(static_cast<float>(N) / static_cast<float>(threads.y));
 
-	MatrixUtils::matrix_transpose_kernel<<<grid, threads>>>(d_matrix, d_result, M, N);
+	Kernel::matrix_transpose_kernel<<<grid, threads>>>(d_matrix, d_result, M, N);
 
 	cudaError_t error = cudaPeekAtLastError();
 	if (error != cudaSuccess) {
@@ -625,7 +625,7 @@ namespace CudaHelpers {
 	grid.x = std::ceil(static_cast<float>(M) / static_cast<float>(threads.x));
 	grid.y = std::ceil(static_cast<float>(N) / static_cast<float>(threads.y));
 
-	MatrixUtils::matrix_transpose_kernel<<<grid, threads>>>(d_matrix, d_result, batch_size, M, N);
+	Kernel::matrix_transpose_kernel<<<grid, threads>>>(d_matrix, d_result, batch_size, M, N);
 
 	cudaError_t error = cudaPeekAtLastError();
 	if (error != cudaSuccess) {
@@ -670,7 +670,7 @@ namespace CudaHelpers {
 	// Call the kernel
 	int threads = CudaConfig::BLOCK_SIZE * CudaConfig::BLOCK_SIZE;
 	int blocks = std::ceil(static_cast<float>(batch_size * M * N) / threads);
-	MatrixUtils::batch_vector_mean_kernel<<<blocks, threads>>>(d_matrix, d_result, batch_size, M, N);
+	Kernel::batch_vector_mean_kernel<<<blocks, threads>>>(d_matrix, d_result, batch_size, M, N);
 
 	cudaError_t error = cudaPeekAtLastError();
 	if (error != cudaSuccess) {
@@ -718,7 +718,7 @@ namespace CudaHelpers {
 	grid.x = std::ceil(static_cast<float>(M) / static_cast<float>(threads.x));
 	grid.y = std::ceil(static_cast<float>(N) / static_cast<float>(threads.y));
 
-	MatrixUtils::batch_matrix_mean_kernel<<<grid, threads>>>(d_matrix, d_result, batch_size, M, N);
+	Kernel::batch_matrix_mean_kernel<<<grid, threads>>>(d_matrix, d_result, batch_size, M, N);
 
 	cudaError_t error = cudaPeekAtLastError();
 	if (error != cudaSuccess) {

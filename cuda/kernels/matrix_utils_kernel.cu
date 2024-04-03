@@ -1,7 +1,7 @@
 #include <cstddef>
 #include <cuda_runtime.h>
 
-namespace MatrixUtils {
+namespace Kernel {
 
 	template <typename T>
 	__global__ void mm_kernel(const T *A, const T *B, T *C, int M, int K, int P) {
