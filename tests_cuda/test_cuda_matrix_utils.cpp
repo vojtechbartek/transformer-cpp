@@ -9,7 +9,8 @@ double EPSILON = 1e-6;
 
 bool all_close(const std::vector<std::vector<std::vector<float>>> &a,
 			   const std::vector<std::vector<std::vector<float>>> &b) {
-	if ((a.size() != b.size()) || (a[0].size() != b[0].size()) || (a[0][0].size() != b[0][0].size()){
+	if ((a.size() != b.size()) || (a[0].size() != b[0].size()) || (a[0][0].size() != b[0][0].size())){
+		std::cout << "Wrong Dimensions" << std::endl;
 		return false;
 	}
 
@@ -17,6 +18,7 @@ bool all_close(const std::vector<std::vector<std::vector<float>>> &a,
 	for (size_t j = 0; j < a[i].size(); j++) {
 	  for (size_t k = 0; k < a[i][j].size(); k++) {
 		if (std::abs(a[i][j][k] - b[i][j][k]) > EPSILON) {
+		  std::cout << "Wrong Dimensions" << std::endl;
 		  return false;
 		}
 	  }
@@ -28,6 +30,7 @@ bool all_close(const std::vector<std::vector<std::vector<float>>> &a,
 bool all_close(const std::vector<std::vector<float>> &a,
 			   const std::vector<std::vector<float>> &b) {
 	if ((a.size() != b.size()) || (a[0].size() != b[0].size())) {
+		std::cout << "Wrong Dimensions" << std::endl;
 		return false;
 	}
 
