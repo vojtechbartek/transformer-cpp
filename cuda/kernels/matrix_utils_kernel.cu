@@ -222,11 +222,11 @@ namespace MatrixUtils {
 	}
 
 	for (size_t y = 0; y < N; y++) {
-		T index = x * N + y;
+		size_t index = x * N + y;
 		T s_i = A[index];
 		T grad = 0;
 		for (size_t k = 0; k < N; k++) {
-			T j_index = x * N + k;		
+			size_t j_index = x * N + k;		
 			if (k == y) {
 				// diagonal part: softmax(x_i) * (1 - softmax(x_i))
 				grad += s_i * (1 - s_i) * B[j_index];
@@ -257,11 +257,11 @@ namespace MatrixUtils {
 	}
 
 	for (size_t y = 0; y < N; y++) {
-		T index = b * M * N + x * N + y;
+		size_t index = b * M * N + x * N + y;
 		T s_i = A[index];
 		T grad = 0;
 		for (size_t k = 0; k < N; k++) {
-			T j_index = b * M * N + x * N + k;		
+			size_t j_index = b * M * N + x * N + k;		
 			if (k == y) {
 				// diagonal part: softmax(x_i) * (1 - softmax(x_i))
 				grad += s_i * (1 - s_i) * B[j_index];
