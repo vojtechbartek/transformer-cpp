@@ -356,4 +356,386 @@ namespace CudaHelpers {
 
 		return result;
 	}
+
+	template <typename T>
+	std::vector<std::vector<std::vector<T>>> rowSoftmax(const std::vector<std::vector<std::vector<T>>>& matrix) {
+	/*
+	 * Helper function to perform row-wise softmax on the GPU
+	 * @param matrix: 3D tensor of shape (batch_size, M, N)
+	 * @returns: 3D tensor of shape (batch_size, M, N) with row-wise softmax applied
+	 */
+
+	int batch_size = matrix.size();
+	int M = matrix[0].size();
+	int N = matrix[0][0].size();
+	int size = batch_size * M * N;
+	assert(size > 0);
+
+	// Allocate memory
+	T *d_matrix, *d_result;
+	cudaMallocManaged(&d_matrix, size * sizeof(T));
+	cudaMallocManaged(&d_result, size * sizeof(T));
+
+	// Flatten the matrix
+	flatten3DMatrix(matrix, d_matrix);
+
+	// Call the kernel
+	dim3 grid(1,1,1);
+	int threads = CudaConfig::BLOCK_SIZE * CudaConfig::BLOCK_SIZE;
+
+	grid.z = batch_size;
+	grid.x = std::ceil(static_cast<float>(M * N) / threads);
+
+	MatrixUtils::row_softmax_kernel<<<grid, threads>>>(d_matrix, d_result, batch_size, M, N);
+
+	cudaError_t error = cudaPeekAtLastError();
+	if (error != cudaSuccess) {
+		std::cerr << "CUDA error: " << cudaGetErrorString(error) << std::endl;
+		std::exit(1);
+	}
+	cudaDeviceSynchronize();
+
+	// Move the result from flat vector to 3D tensor
+	std::vector<std::vector<std::vector<T>>> result = unflatten3DMatrix(d_result, batch_size, M, N);
+
+	// Free the gpu memory
+	cudaFree(d_matrix);
+	cudaFree(d_result);
+
+	return result;
+	}
+
+	template <typename T>
+	std::vector<std::vector<T>> rowSoftmax(const std::vector<std::vector<T>>& matrix) {
+	/*
+	 * Helper function to perform row-wise softmax on the GPU
+	 * @param matrix: 2D tensor of shape (M, N)
+	 * @returns: 2D tensor of shape (M, N) with row-wise softmax applied
+	 */
+
+	int M = matrix.size();
+	int N = matrix[0].size();
+	int size = M * N;
+	assert(size > 0);
+
+	// Allocate memory
+	T *d_matrix, *d_result;
+	cudaMallocManaged(&d_matrix, size * sizeof(T));
+	cudaMallocManaged(&d_result, size * sizeof(T));
+
+	// Flatten the matrix
+	flatten2DMatrix(matrix, d_matrix);
+
+	// Call the kernel
+	int threads = CudaConfig::BLOCK_SIZE * CudaConfig::BLOCK_SIZE;
+	int blocks = std::ceil(static_cast<float>(M * N) / threads);
+	MatrixUtils::row_softmax_kernel<<<blocks, threads>>>(d_matrix, d_result, M, N);
+
+	cudaError_t error = cudaPeekAtLastError();
+	if (error != cudaSuccess) {
+		std::cerr << "CUDA error: " << cudaGetErrorString(error) << std::endl;
+		std::exit(1);
+	}
+	cudaDeviceSynchronize();
+
+	// Move the result from flat vector to 2D tensor
+	std::vector<std::vector<T>> result = unflatten2DMatrix(d_result, M, N);
+
+	// Free the gpu memory
+	cudaFree(d_matrix);
+	cudaFree(d_result);
+
+	return result;
+	}
+
+	template <typename T>
+	std::vector<std::vector<T>> rowSoftmaxDerivative(const std::vector<std::vector<T>>& softmax_output, const std::vector<std::vector<T>>& grad_output) {
+	/*
+	 * Helper function to compute the derivative of the softmax function
+	 * @param softmax_output: 2D tensor of shape (M, N) with softmax output
+	 * @param grad_output: 2D tensor of shape (M, N) with gradient of the loss
+	 * @returns: 2D tensor of shape (M, N) with the derivative of the softmax function
+	 */
+
+	int M = softmax_output.size();
+	int N = softmax_output[0].size();
+	int size = M * N;
+	assert(size > 0);
+
+	// Allocate memory
+	T *d_softmax_output, *d_grad_output, *d_result;
+	cudaMallocManaged(&d_softmax_output, size * sizeof(T));
+	cudaMallocManaged(&d_grad_output, size * sizeof(T));
+	cudaMallocManaged(&d_result, size * sizeof(T));
+
+	// Flatten the matrices
+	flatten2DMatrix(softmax_output, d_softmax_output);
+	flatten2DMatrix(grad_output, d_grad_output);
+
+	// Call the kernel
+	int threads = CudaConfig::BLOCK_SIZE * CudaConfig::BLOCK_SIZE;
+	int blocks = std::ceil(static_cast<float>(M * N) / threads);
+	MatrixUtils::row_softmax_derivative_kernel<<<blocks, threads>>>(d_softmax_output, d_grad_output, d_result, M, N);
+
+	cudaError_t error = cudaPeekAtLastError();
+	if (error != cudaSuccess) {
+		std::cerr << "CUDA error: " << cudaGetErrorString(error) << std::endl;
+		std::exit(1);
+	}
+	cudaDeviceSynchronize();
+
+	// Move the result from flat vector to 2D tensor
+	std::vector<std::vector<T>> result = unflatten2DMatrix(d_result, M, N);
+
+	// Free the gpu memory
+	cudaFree(d_softmax_output);
+	cudaFree(d_grad_output);
+	cudaFree(d_result);
+
+	return result;
+	}
+
+	template <typename T>
+	std::vector<std::vector<std::vector<T>>> rowSoftmaxDerivative(const std::vector<std::vector<std::vector<T>>>& softmax_output, const std::vector<std::vector<std::vector<T>>>& grad_output) {
+	/*
+	 * Helper function to compute the derivative of the softmax function
+	 * @param softmax_output: 3D tensor of shape (batch_size, M, N) with softmax output
+	 * @param grad_output: 3D tensor of shape (batch_size, M, N) with gradient of the loss
+	 * @returns: 3D tensor of shape (batch_size, M, N) with the derivative of the softmax function
+	 */
+
+	int batch_size = softmax_output.size();
+	int M = softmax_output[0].size();
+	int N = softmax_output[0][0].size();
+	int size = batch_size * M * N;
+	assert(size > 0);
+
+	// Allocate memory
+	T *d_softmax_output, *d_grad_output, *d_result;
+	cudaMallocManaged(&d_softmax_output, size * sizeof(T));
+	cudaMallocManaged(&d_grad_output, size * sizeof(T));
+	cudaMallocManaged(&d_result, size * sizeof(T));
+
+	// Flatten the matrices
+	flatten3DMatrix(softmax_output, d_softmax_output);
+	flatten3DMatrix(grad_output, d_grad_output);
+
+	// Call the kernel
+	dim3 grid(1,1,1);
+	int threads = CudaConfig::BLOCK_SIZE * CudaConfig::BLOCK_SIZE;
+
+	grid.z = batch_size;
+	grid.x = std::ceil(static_cast<float>(M * N) / threads);
+
+	MatrixUtils::row_softmax_derivative_kernel<<<grid, threads>>>(d_softmax_output, d_grad_output, d_result, batch_size, M, N);
+
+	cudaError_t error = cudaPeekAtLastError();
+	if (error != cudaSuccess) {
+		std::cerr << "CUDA error: " << cudaGetErrorString(error) << std::endl;
+		std::exit(1);
+	}
+	cudaDeviceSynchronize();
+
+	// Move the result from flat vector to 3D tensor
+	std::vector<std::vector<std::vector<T>>> result = unflatten3DMatrix(d_result, batch_size, M, N);
+
+	// Free the gpu memory
+	cudaFree(d_softmax_output);
+	cudaFree(d_grad_output);
+	cudaFree(d_result);
+
+	return result;
+	}
+
+	template <typename T>
+	std::vector<std::vector<T>> matrixTranspose(const std::vector<std::vector<T>>& matrix) {
+	/*
+	 * Helper function to perform matrix transpose on the GPU
+	 * @param matrix: M x N
+	 * @returns: N x M matrix result of matrix transpose
+	 */
+
+	int M = matrix.size();
+	int N = matrix[0].size();
+	int size = M * N;
+	assert(size > 0);
+
+	// Allocate memory
+	T *d_matrix, *d_result;
+	cudaMallocManaged(&d_matrix, size * sizeof(T));
+	cudaMallocManaged(&d_result, size * sizeof(T));
+
+	// Flatten the matrix
+	flatten2DMatrix(matrix, d_matrix);
+	
+	// Call the kernel
+	dim3 grid(1,1);
+	dim3 threads(CudaConfig::BLOCK_SIZE, CudaConfig::BLOCK_SIZE);
+
+	grid.x = std::ceil(static_cast<float>(M) / static_cast<float>(threads.x));
+	grid.y = std::ceil(static_cast<float>(N) / static_cast<float>(threads.y));
+
+	MatrixUtils::transpose_kernel<<<grid, threads>>>(d_matrix, d_result, M, N);
+
+	cudaError_t error = cudaPeekAtLastError();
+	if (error != cudaSuccess) {
+		std::cerr << "CUDA error: " << cudaGetErrorString(error) << std::endl;
+		std::exit(1);
+	}
+
+	cudaDeviceSynchronize();
+
+	// Move the result from flat vector to 2D tensor
+	std::vector<std::vector<T>> result = unflatten2DMatrix(d_result, N, M);
+
+	// Free the gpu memory
+	cudaFree(d_matrix);
+	cudaFree(d_result);
+
+	return result;
+	}
+
+	template <typename T>
+	std::vector<std::vector<std::vector<T>>> matrixTranspose(const std::vector<std::vector<std::vector<T>>>& matrix) {
+	/*
+	 * Helper function to perform matrix transpose on the GPU
+	 * @param matrix: 3D tensor of shape (batch_size, M, N)
+	 * @returns: 3D tensor of shape (batch_size, N, M) with matrix transpose applied
+	 */
+
+	int batch_size = matrix.size();
+	int M = matrix[0].size();
+	int N = matrix[0][0].size();
+	int size = batch_size * M * N;
+	assert(size > 0);
+
+	// Allocate memory
+	T *d_matrix, *d_result;
+	cudaMallocManaged(&d_matrix, size * sizeof(T));
+	cudaMallocManaged(&d_result, size * sizeof(T));
+
+	// Flatten the matrix
+	flatten3DMatrix(matrix, d_matrix);
+
+	// Call the kernel
+	dim3 grid(1,1,1);
+	dim3 threads(CudaConfig::BLOCK_SIZE, CudaConfig::BLOCK_SIZE);
+
+	grid.z = batch_size;
+	grid.x = std::ceil(static_cast<float>(M) / static_cast<float>(threads.x));
+	grid.y = std::ceil(static_cast<float>(N) / static_cast<float>(threads.y));
+
+	MatrixUtils::transpose_kernel<<<grid, threads>>>(d_matrix, d_result, batch_size, M, N);
+
+	cudaError_t error = cudaPeekAtLastError();
+	if (error != cudaSuccess) {
+		std::cerr << "CUDA error: " << cudaGetErrorString(error) << std::endl;
+		std::exit(1);
+	}
+
+	cudaDeviceSynchronize();
+
+	// Move the result from flat vector to 3D tensor
+	std::vector<std::vector<std::vector<T>>> result = unflatten3DMatrix(d_result, batch_size, N, M);
+
+	// Free the gpu memory
+	cudaFree(d_matrix);
+	cudaFree(d_result);
+
+	return result;
+	}
+
+	template <typename T>
+	std::vector<T> batchVectorMean(const std::vector<std::vector<std::vector<T>>>& matrix) { 
+	/*
+	 * Helper function to compute the mean across the batch (first) and row (second) dimensions
+	* @param matrix: 3D tensor of shape (batch_size, M, N)
+	* @returns: vector of shape (N,) with the mean across the batch and row dimensions
+	*/
+
+	int batch_size = matrix.size();
+	int M = matrix[0].size();
+	int N = matrix[0][0].size();
+	int size = batch_size * M * N;
+	assert(size > 0);
+
+	// Allocate memory
+	T *d_matrix, *d_result;
+	cudaMallocManaged(&d_matrix, size * sizeof(T));
+	cudaMallocManaged(&d_result, N * sizeof(T));
+		
+	// Flatten the matrix
+	flatten3DMatrix(matrix, d_matrix);
+
+	// Call the kernel
+	int threads = CudaConfig::BLOCK_SIZE * CudaConfig::BLOCK_SIZE;
+	int blocks = std::ceil(static_cast<float>(batch_size * M * N) / threads);
+	MatrixUtils::batch_vector_mean_kernel<<<blocks, threads>>>(d_matrix, d_result, batch_size, M, N);
+
+	cudaError_t error = cudaPeekAtLastError();
+	if (error != cudaSuccess) {
+		std::cerr << "CUDA error: " << cudaGetErrorString(error) << std::endl;
+		std::exit(1);
+	}
+	cudaDeviceSynchronize();
+
+	// Move the result from flat vector to 1D tensor
+	std::vector<T> result(d_result, d_result + N);
+
+	// Free the gpu memory
+	cudaFree(d_matrix);
+	cudaFree(d_result);
+
+	return result;
+	}
+
+	template <typename T>
+	std::vector<std::vector<T>> batchMatrixMean(const std::vector<std::vector<std::vector<T>>>& matrix) {
+	/*
+	 * Helper function to compute the mean across the batch dimension
+	 * @param matrix: 3D tensor of shape (batch_size, M, N)
+	 * @returns: 2D tensor of shape (M, N) with the mean across the batch dimension
+	 */
+
+	int batch_size = matrix.size();
+	int M = matrix[0].size();
+	int N = matrix[0][0].size();
+	int size = batch_size * M * N;
+	assert(size > 0);
+
+	// Allocate memory
+	T *d_matrix, *d_result;
+	cudaMallocManaged(&d_matrix, size * sizeof(T));
+	cudaMallocManaged(&d_result, M * N * sizeof(T));
+
+	// Flatten the matrix
+	flatten3DMatrix(matrix, d_matrix);
+
+	// Call the kernel
+	dim3 grid(1,1);
+	dim3 threads(CudaConfig::BLOCK_SIZE, CudaConfig::BLOCK_SIZE);
+
+	grid.x = std::ceil(static_cast<float>(M) / static_cast<float>(threads.x));
+	grid.y = std::ceil(static_cast<float>(N) / static_cast<float>(threads.y));
+
+	MatrixUtils::batch_matrix_mean_kernel<<<grid, threads>>>(d_matrix, d_result, batch_size, M, N);
+
+	cudaError_t error = cudaPeekAtLastError();
+	if (error != cudaSuccess) {
+		std::cerr << "CUDA error: " << cudaGetErrorString(error) << std::endl;
+		std::exit(1);
+	}
+	cudaDeviceSynchronize();
+
+	// Move the result from flat vector to 2D tensor
+	std::vector<std::vector<T>> result = unflatten2DMatrix(d_result, M, N);
+
+	// Free the gpu memory
+	cudaFree(d_matrix);
+	cudaFree(d_result);
+
+	return result;
+	}
+
+
 }

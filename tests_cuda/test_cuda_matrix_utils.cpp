@@ -133,12 +133,82 @@ bool random_matrix_addition3D_test(int b, int m, int n) {
 	return all_close(C_cuda, C_cpu);
 }
 	
+bool random_row_softmax_test(int m, int n) {
+	std::vector<std::vector<float>> A = create_random_matrix(m, n);
+	std::vector<std::vector<float>> C_cuda = CudaHelpers::rowSoftmax(A);
+	std::vector<std::vector<float>> C_cpu = MatrixUtils::rowSoftmax(A);
+
+	return all_close(C_cuda, C_cpu);
+}
+
+bool random_batch_row_softmax_test(int b, int m, int n) {
+	std::vector<std::vector<std::vector<float>>> A = create_random_matrix(b, m, n);
+	std::vector<std::vector<std::vector<float>>> C_cuda = CudaHelpers::rowSoftmax(A);
+	std::vector<std::vector<std::vector<float>>> C_cpu = MatrixUtils::rowSoftmax(A);
+
+	return all_close(C_cuda, C_cpu);
+}
+
+bool random_row_softmax_derivative_test(int m, int n) {
+	std::vector<std::vector<float>> softmax_input = create_random_matrix(m, n);
+	std::vector<std::vector<float>> softmax_output = MatrixUtils::rowSoftmax(softmax_input);
+	std::vector<std::vector<float>> grad_output = create_random_matrix(m, n);
+
+	std::vector<std::vector<float>> C_cuda = CudaHelpers::rowSoftmaxDerivative(softmax_output, grad_output);
+	std::vector<std::vector<float>> C_cpu = MatrixUtils::rowSoftmaxDerivative(softmax_output, grad_output);
+
+	return all_close(C_cuda, C_cpu);
+}
+
+bool random_batch_row_softmax_derivative_test(int b, int m, int n) {
+	std::vector<std::vector<std::vector<float>>> softmax_input = create_random_matrix(b, m, n);
+	std::vector<std::vector<std::vector<float>>> softmax_output = MatrixUtils::rowSoftmax(softmax_input);
+	std::vector<std::vector<std::vector<float>>> grad_output = create_random_matrix(b, m, n);
+
+	std::vector<std::vector<std::vector<float>>> C_cuda = CudaHelpers::rowSoftmaxDerivative(softmax_output, grad_output);
+	std::vector<std::vector<std::vector<float>>> C_cpu = MatrixUtils::rowSoftmaxDerivative(softmax_output, grad_output);
+
+	return all_close(C_cuda, C_cpu);
+}
+
+bool random_matrix_transpose_test(int m, int n) {
+	std::vector<std::vector<float>> A = create_random_matrix(m, n);
+	std::vector<std::vector<float>> C_cuda = CudaHelpers::matrixTranspose(A);
+	std::vector<std::vector<float>> C_cpu = MatrixUtils::matrixTranspose(A);
+
+	return all_close(C_cuda, C_cpu);
+}
+
+bool random_batch_matrix_transpose_test(int b, int m, int n) {
+	std::vector<std::vector<std::vector<float>>> A = create_random_matrix(b, m, n);
+	std::vector<std::vector<std::vector<float>>> C_cuda = CudaHelpers::batchMatrixTranspose(A);
+	std::vector<std::vector<std::vector<float>>> C_cpu = MatrixUtils::batchMatrixTranspose(A);
+
+	return all_close(C_cuda, C_cpu);
+}
+
+bool random_batch_matrix_mean_test(int b, int m, int n) {
+	std::vector<std::vector<std::vector<float>>> A = create_random_matrix(b, m, n);
+	std::vector<std::vector<float>> C_cuda = CudaHelpers::batchMatrixMean(A);
+	std::vector<std::vector<float>> C_cpu = MatrixUtils::batchMatrixMean(A);
+
+	return all_close(C_cuda, C_cpu);
+}
+
+bool random_vector_mean_test(int b, int m, int n) {
+	std::vector<std::vector<std::vector<float>>> A = create_random_matrix(b, m, n);
+	std::vector<float> C_cuda = CudaHelpers::vectorMean(A);
+	std::vector<float> C_cpu = MatrixUtils::vectorMean(A);
+
+	return all_close(C_cuda, C_cpu);
+}
+
 
 int main() {
 	int b, m, k, p;	
 	std::random_device rd;
 	std::default_random_engine generator(rd());
-	std::uniform_int_distribution<int> distribution(1, 5);
+	std::uniform_int_distribution<int> distribution(1, 30);
 	
 	int num_tests = 10;
 		
@@ -207,8 +277,109 @@ int main() {
 			return 1;
 		}
 	}
+	std::cout << "[+] Matrix Addition 3D Test passed" << std::endl;
 
+	// Run num_tests random tests for row-wise softmax 2D
+	for (int i = 0; i < num_tests; i++) {
+		m = distribution(generator);
+		k = distribution(generator);
+		
+		if (!random_row_softmax_test(m, k)) {
+			std::cout << "[-] Row-wise Softmax 2D Test failed" << std::endl;
+			return 1;
+		}
+	}
+	std::cout << "[+] Row-wise Softmax 2D Test passed" << std::endl;
+
+	// Run num_tests random tests for row-wise softmax 3D
+	for (int i = 0; i < num_tests; i++) {
+		b = distribution(generator);
+		m = distribution(generator);
+		k = distribution(generator);
+		
+		if (!random_batch_row_softmax_test(b, m, k)) {
+			std::cout << "[-] Row-wise Softmax 3D Test failed" << std::endl;
+			return 1;
+		}
+	}
+	std::cout << "[+] Row-wise Softmax 3D Test passed" << std::endl;
+
+	// Run num_tests random tests for row-wise softmax derivative 2D
+	for (int i = 0; i < num_tests; i++) {
+		m = distribution(generator);
+		k = distribution(generator);
+		
+		if (!random_row_softmax_derivative_test(m, k)) {
+			std::cout << "[-] Row-wise Softmax Derivative 2D Test failed" << std::endl;
+			return 1;
+		}
+	}
+	std::cout << "[+] Row-wise Softmax Derivative 2D Test passed" << std::endl;
+
+	// Run num_tests random tests for row-wise softmax derivative 3D
+	for (int i = 0; i < num_tests; i++) {
+		b = distribution(generator);
+		m = distribution(generator);
+		k = distribution(generator);
+		
+		if (!random_batch_row_softmax_derivative_test(b, m, k)) {
+			std::cout << "[-] Row-wise Softmax Derivative 3D Test failed" << std::endl;
+			return 1;
+		}
+	}
+	std::cout << "[+] Row-wise Softmax Derivative 3D Test passed" << std::endl;
+
+	// Run num_tests random tests for matrix transpose 2D
+	for (int i = 0; i < num_tests; i++) {
+		m = distribution(generator);
+		k = distribution(generator);
+		
+		if (!random_matrix_transpose_test(m, k)) {
+			std::cout << "[-] Matrix Transpose 2D Test failed" << std::endl;
+			return 1;
+		}
+	}
+	std::cout << "[+] Matrix Transpose 2D Test passed" << std::endl;
+
+	// Run num_tests random tests for matrix transpose 3D
+	for (int i = 0; i < num_tests; i++) {
+		b = distribution(generator);
+		m = distribution(generator);
+		k = distribution(generator);
+		
+		if (!random_batch_matrix_transpose_test(b, m, k)) {
+			std::cout << "[-] Matrix Transpose 3D Test failed" << std::endl;
+			return 1;
+		}
+	}
+	std::cout << "[+] Matrix Transpose 3D Test passed" << std::endl;
+
+	// Run num_tests random tests for batch matrix mean
+	for (int i = 0; i < num_tests; i++) {
+		b = distribution(generator);
+		m = distribution(generator);
+		k = distribution(generator);
+		
+		if (!random_batch_matrix_mean_test(b, m, k)) {
+			std::cout << "[-] Batch Matrix Mean Test failed" << std::endl;
+			return 1;
+		}
+	}
+	std::cout << "[+] Batch Matrix Mean Test passed" << std::endl;
+
+	// Run num_tests random tests for vector mean
+	for (int i = 0; i < num_tests; i++) {
+		b = distribution(generator);
+		m = distribution(generator);
+		k = distribution(generator);
+		
+		if (!random_vector_mean_test(b, m, k)) {
+			std::cout << "[-] Vector Mean Test failed" << std::endl;
+			return 1;
+		}
+	}
+	std::cout << "[+] Vector Mean Test passed" << std::endl;
 
 	return 0;
-
 }
+
