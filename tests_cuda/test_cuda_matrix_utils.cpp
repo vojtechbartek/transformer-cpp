@@ -196,8 +196,8 @@ bool random_matrix_transpose_test(int m, int n) {
 
 bool random_batch_matrix_transpose_test(int b, int m, int n) {
 	std::vector<std::vector<std::vector<float>>> A = create_random_matrix(b, m, n);
-	std::vector<std::vector<std::vector<float>>> C_cuda = CudaHelpers::batchMatrixTranspose(A);
-	std::vector<std::vector<std::vector<float>>> C_cpu = MatrixUtils::batchMatrixTranspose(A);
+	std::vector<std::vector<std::vector<float>>> C_cuda = CudaHelpers::matrixTranspose(A);
+	std::vector<std::vector<std::vector<float>>> C_cpu = MatrixUtils::matrixTranspose(A);
 
 	return all_close(C_cuda, C_cpu);
 }
