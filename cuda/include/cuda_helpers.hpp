@@ -575,7 +575,7 @@ namespace CudaHelpers {
 	grid.x = std::ceil(static_cast<float>(M) / static_cast<float>(threads.x));
 	grid.y = std::ceil(static_cast<float>(N) / static_cast<float>(threads.y));
 
-	MatrixUtils::transpose_kernel<<<grid, threads>>>(d_matrix, d_result, M, N);
+	MatrixUtils::matrix_transpose_kernel<<<grid, threads>>>(d_matrix, d_result, M, N);
 
 	cudaError_t error = cudaPeekAtLastError();
 	if (error != cudaSuccess) {
@@ -625,7 +625,7 @@ namespace CudaHelpers {
 	grid.x = std::ceil(static_cast<float>(M) / static_cast<float>(threads.x));
 	grid.y = std::ceil(static_cast<float>(N) / static_cast<float>(threads.y));
 
-	MatrixUtils::transpose_kernel<<<grid, threads>>>(d_matrix, d_result, batch_size, M, N);
+	MatrixUtils::matrix_transpose_kernel<<<grid, threads>>>(d_matrix, d_result, batch_size, M, N);
 
 	cudaError_t error = cudaPeekAtLastError();
 	if (error != cudaSuccess) {

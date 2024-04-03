@@ -315,7 +315,7 @@ namespace MatrixUtils {
 	}
 
 	template <typename T>
-	__global__ void batch_vector_mean(const T *A, T *B, int batch, int M, int N) {
+	__global__ void batch_vector_mean_kernel(const T *A, T *B, int batch, int M, int N) {
 	/*
 	* Kernel for computing the mean across the batch (first) and rows (second) 
 	* dimensions of a 3D tensor
@@ -341,7 +341,7 @@ namespace MatrixUtils {
 	}
 
 	template <typename T>
-	__global__ void batch_matrix_mean(const T *A, T *B, int batch, int M, int N) {
+	__global__ void batch_matrix_mean_kernel(const T *A, T *B, int batch, int M, int N) {
 	/*
 	* Kernel for computing the mean across the batch dimension of a 3D tensor
 	* @param A: flat array of matrix of shape batch x M x N

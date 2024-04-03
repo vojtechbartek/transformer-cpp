@@ -5,6 +5,7 @@
 #include <random>
 #include <cmath>
 
+double EPSILON = 1e-6;
 
 bool all_close(const std::vector<std::vector<std::vector<float>>> &a,
 			   const std::vector<std::vector<std::vector<float>>> &b) {
@@ -15,7 +16,7 @@ bool all_close(const std::vector<std::vector<std::vector<float>>> &a,
   for (size_t i = 0; i < a.size(); i++) {
 	for (size_t j = 0; j < a[i].size(); j++) {
 	  for (size_t k = 0; k < a[i][j].size(); k++) {
-		if (std::abs(a[i][j][k] - b[i][j][k]) > 1e-6) {
+		if (std::abs(a[i][j][k] - b[i][j][k]) > EPSILON) {
 		  return false;
 		}
 	  }
@@ -32,9 +33,23 @@ bool all_close(const std::vector<std::vector<float>> &a,
 
 	for (size_t i = 0; i < a.size(); i++) {
 		for (size_t j = 0; j < a[i].size(); j++) {
-			if (std::abs(a[i][j] - b[i][j]) > 1e-6) {
+			if (std::abs(a[i][j] - b[i][j]) > EPSILON) {
 				return false;
 			}
+		}
+	}
+  return true;
+}
+
+bool all_close(const std::vector<float> &a,
+			   const std::vector<float> &b) {
+	if (a.size() != b.size()) {
+		return false;
+	}
+
+	for (size_t i = 0; i < a.size(); i++) {
+		if (std::abs(a[i] - b[i]) > EPSILON) {
+			return false;
 		}
 	}
   return true;
@@ -197,8 +212,8 @@ bool random_batch_matrix_mean_test(int b, int m, int n) {
 
 bool random_vector_mean_test(int b, int m, int n) {
 	std::vector<std::vector<std::vector<float>>> A = create_random_matrix(b, m, n);
-	std::vector<float> C_cuda = CudaHelpers::vectorMean(A);
-	std::vector<float> C_cpu = MatrixUtils::vectorMean(A);
+	std::vector<float> C_cuda = CudaHelpers::batchVectorMean(A);
+	std::vector<float> C_cpu = MatrixUtils::batchVectorMean(A);
 
 	return all_close(C_cuda, C_cpu);
 }
