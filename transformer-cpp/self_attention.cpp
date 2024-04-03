@@ -1,11 +1,8 @@
 #include "self_attention.hpp"
 #include <random>
-#ifdef USE_CUDA
-#include "../cuda/include/cuda_helpers.hpp"
-namespace MatrixUtils = CudaHelpers;
-#else
-#include "matrix_utils.hpp"
-#endif
+#include "matrix_utils_alias.hpp"
+
+
 SelfAttention::SelfAttention(int embed_dim, int head_size) : embed_dim_(embed_dim), head_size_(head_size) {
     // Initialize the weights
     std::default_random_engine generator(std::random_device{}());

@@ -1,5 +1,5 @@
 #include "transformer_model.hpp"
-#include "matrix_utils.hpp"
+#include "matrix_utils_alias.hpp"
 #include "positional_encoding.hpp"
 #include <iostream>
 #include <sys/wait.h>

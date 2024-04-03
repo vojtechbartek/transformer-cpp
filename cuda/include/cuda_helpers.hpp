@@ -596,7 +596,7 @@ namespace CudaHelpers {
 	}
 
 	template <typename T>
-	std::vector<std::vector<std::vector<T>>> matrixTranspose(const std::vector<std::vector<std::vector<T>>>& matrix) {
+	std::vector<std::vector<std::vector<T>>> batchMatrixTranspose(const std::vector<std::vector<std::vector<T>>>& matrix) {
 	/*
 	 * Helper function to perform matrix transpose on the GPU
 	 * @param matrix: 3D tensor of shape (batch_size, M, N)

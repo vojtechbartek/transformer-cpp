@@ -1,5 +1,5 @@
 #include "feed_forward_layer.hpp"
-#include "matrix_utils.hpp"
+#include "matrix_utils_alias.hpp"
 #include "activation_functions.hpp"
 #include <vector>
 #include <random>
