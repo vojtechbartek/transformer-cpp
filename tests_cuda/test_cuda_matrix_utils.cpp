@@ -9,7 +9,7 @@ double EPSILON = 1e-6;
 
 bool all_close(const std::vector<std::vector<std::vector<float>>> &a,
 			   const std::vector<std::vector<std::vector<float>>> &b) {
-	if (a.size() != b.size()) {
+	if ((a.size() != b.size()) || (a[0].size() != b[0].size()) || (a[0][0].size() != b[0][0].size()){
 		return false;
 	}
 
@@ -27,7 +27,7 @@ bool all_close(const std::vector<std::vector<std::vector<float>>> &a,
 
 bool all_close(const std::vector<std::vector<float>> &a,
 			   const std::vector<std::vector<float>> &b) {
-	if (a.size() != b.size()) {
+	if ((a.size() != b.size()) || (a[0].size() != b[0].size())) {
 		return false;
 	}
 
@@ -104,7 +104,7 @@ bool random_matrix_multiplication3D_test(int b, int m, int k, int p) {
 
 	std::vector<std::vector<std::vector<float>>> C_cuda = CudaHelpers::batchMatrixMultiplication(A, B);
 	std::vector<std::vector<std::vector<float>>> C_cpu = MatrixUtils::batchMatrixMultiplication(A, B);
-	
+		
 	return all_close(C_cuda, C_cpu);
 }
 
