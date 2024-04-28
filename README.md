@@ -1,4 +1,4 @@
-# transformer-cpp
+#transformer - cpp
 
 To run tests for CUDA kernels, run: 
 ```bash

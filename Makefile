@@ -3,7 +3,7 @@ NVCC=nvcc
 CXXFLAGS=-std=c++11
 NVCCFLAGS=-std=c++11 -x cu
 
-# Directories
+#Directories
 BIN_DIR=./bin
 SRC_DIR=./transformer-cpp
 CUDA_SRC_DIR=./cuda/include
@@ -11,7 +11,7 @@ CUDA_KERNELS_DIR=./cuda/kernels
 TEST_DIR=./tests
 TEST_CUDA_DIR=./tests_cuda
 
-# Find all cpp files in SRC_DIR
+#Find all cpp files in SRC_DIR
 SOURCES := $(filter-out $(SRC_DIR)/main.cpp,$(wildcard $(SRC_DIR)/*.cpp))
 CUDA_SOURCES := $(wildcard $(CUDA_SRC_DIR)/*.cpp) $(wildcard $(CUDA_SRC_DIR)/*.hpp) $(wildcard $(CUDA_KERNELS_DIR)/*.cu)
 HEADERS := $(wildcard $(SRC_DIR)/*.hpp)

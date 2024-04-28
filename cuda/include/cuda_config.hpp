@@ -1,4 +1,4 @@
 namespace CudaConfig {
-	const int BLOCK_SIZE = 32;
-	
+const int BLOCK_SIZE = 32;
+
 }
