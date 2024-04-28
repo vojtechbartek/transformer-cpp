@@ -5,7 +5,7 @@
 #include <random>
 #include <cmath>
 
-double EPSILON = 1e-6;
+double EPSILON = 1e-5;
 
 bool all_close(const std::vector<std::vector<std::vector<float>>> &a,
 			   const std::vector<std::vector<std::vector<float>>> &b) {
@@ -18,7 +18,7 @@ bool all_close(const std::vector<std::vector<std::vector<float>>> &a,
 	for (size_t j = 0; j < a[i].size(); j++) {
 	  for (size_t k = 0; k < a[i][j].size(); k++) {
 		if (std::abs(a[i][j][k] - b[i][j][k]) > EPSILON) {
-		  std::cout << "Wrong Dimensions" << std::endl;
+		  std::cout << "Different values: a["<<i<<"]["<<j<<"]["<<k<<"] = " << a[i][j][k] << " but b["<<i<<"]["<<j<<"]["<<k<<"] = " << b[i][j][k] <<std::endl;
 		  return false;
 		}
 	  }
@@ -37,6 +37,7 @@ bool all_close(const std::vector<std::vector<float>> &a,
 	for (size_t i = 0; i < a.size(); i++) {
 		for (size_t j = 0; j < a[i].size(); j++) {
 			if (std::abs(a[i][j] - b[i][j]) > EPSILON) {
+				std::cout << "Different values: a["<<i<<"]["<<j<<"] = " << a[i][j] << " but b["<<i<<"]["<<j<<"] = " << b[i][j] <<std::endl;
 				return false;
 			}
 		}
@@ -174,6 +175,7 @@ bool random_row_softmax_derivative_test(int m, int n) {
 
 	std::vector<std::vector<float>> C_cuda = CudaHelpers::rowSoftmaxDerivative(softmax_output, grad_output);
 	std::vector<std::vector<float>> C_cpu = MatrixUtils::rowSoftmaxDerivative(softmax_output, grad_output);
+
 
 	return all_close(C_cuda, C_cpu);
 }

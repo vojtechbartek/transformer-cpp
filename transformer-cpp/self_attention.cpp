@@ -39,6 +39,7 @@ std::vector<std::vector<std::vector<float>>> SelfAttention::forward(const std::v
   K = MatrixUtils::batchMatrixMultiplication(input, Wk); // (batch_size x seq_len x head_size)
   V = MatrixUtils::batchMatrixMultiplication(input, Wv); // (batch_size x seq_len x head_size)
 
+  
 
   auto batch_attention = MatrixUtils::batchMatrixMultiplication(Q, MatrixUtils::batchMatrixTranspose(K)); // (batch_size x seq_len x seq_len)
   // batch_attention tells us how much each token influences the other tokens in the sequence
@@ -75,9 +76,9 @@ std::vector<std::vector<std::vector<float>>> SelfAttention::backward(const std::
     * @param grad_output: the gradient of the loss with respect to the output of the self-attention layer, size (batch_size x seq_len x head_size)
     * @return: the gradient of the loss with respect to the input of the self-attention layer, size (batch_size x seq_len x embed_dim)
   */
-
+  auto grad_attention_weights = MatrixUtils::batchMatrixMultiplication(grad_output, MatrixUtils::batchMatrixTranspose(V)); // (batch_size x seq_len x seq_len)
   // Compute the gradients with respect to the attention weights
-  auto grad_scores = MatrixUtils::rowSoftmaxDerivative(grad_output, softmax_output); // (batch_size x seq_len x seq_len)
+  auto grad_scores = MatrixUtils::rowSoftmaxDerivative(grad_attention_weights, softmax_output); // (batch_size x seq_len x seq_len)
 
   // Compute the gradients with respect to Q, K, and V
   auto grad_Q = MatrixUtils::batchMatrixMultiplication(grad_scores, K); // (batch_size x seq_len x head_size)

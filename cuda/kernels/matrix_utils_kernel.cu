@@ -206,72 +206,64 @@ namespace Kernel {
 	}
 
 	template <typename T>
-	__global__ void row_softmax_derivative_kernel(const T *A, const T *B, T *C, int M, int N) {
-	/*
+	__global__ void row_softmax_derivative_kernel(const T *grad_output, const T *softmax_output, T *grad_softmax, int M, int N) {
+	/**
 	* Kernel for computing the derivative of the softmax function,
-	* each thread computes one row of the output matrix C
-	* @param A: flat array of matrix of shape M x N, softmax output
-	* @param B: flat array of matrix of shape M x N, gradient of the loss with respect to the softmax values
-	* @param C: flat array of matrix of shape M x N, gradient of the loss with respect to the input of the softmax function
+	* each thread computes one cell of the output matrix grad_softmax
+	* @param grad_output: flat array of matrix of shape M x N, gradient of the loss with respect to the softmax values
+	* @param softmax_output: flat array of matrix of shape M x N, softmax output
+	* @param grad_softmax: flat array of matrix of shape M x N, gradient of the loss with respect to the input of the softmax function
 	*/
+		int i = blockIdx.x * blockDim.x + threadIdx.x;
+		int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-	size_t x = blockIdx.x * blockDim.x + threadIdx.x;
-	
-	if (x >= M) {
-		return;
-	}
-
-	for (size_t y = 0; y < N; y++) {
-		size_t index = x * N + y;
-		T s_i = A[index];
-		T grad = 0;
-		for (size_t k = 0; k < N; k++) {
-			size_t j_index = x * N + k;		
-			if (k == y) {
-				// diagonal part: softmax(x_i) * (1 - softmax(x_i))
-				grad += s_i * (1 - s_i) * B[j_index];
-			} else {
-				// off-diagonal part: -softmax(x_i) * softmax(x_j)
-				grad -= s_i * A[j_index] * B[j_index];
-			}
+		if (i >= M || j >= N) {
+			return;
 		}
-		C[index] = grad;
+
+		T diagonal_term = softmax_output[i * N + j] * (1 - softmax_output[i * N + j]);
+		T off_diagonal_term = -softmax_output[i * N + j];
+		T gradient = 0.0;
+
+		for (int k = 0; k < N; k++) {
+            gradient += grad_output[i * N + k] *
+                        (k == j ? diagonal_term : off_diagonal_term * softmax_output[i * N + k]);
+        }	
+		grad_softmax[i * N + j] = gradient;
 	}
-	}
+
 
 	template <typename T>
-	__global__ void row_softmax_derivative_kernel(const T *A, const T *B, T *C, int batch, int M, int N) {
-	/*
-	* Kernel for computing the derivative of the softmax function,
-	* each thread computes one row of the output matrix C
-	* @param A: flat array of matrix of shape batch x M x N, softmax output
-	* @param B: flat array of matrix of shape batch x M x N, gradient of the loss with respect to the softmax values
-	* @param C: flat array of matrix of shape batch x M x N, gradient of the loss with respect to the input of the softmax function
-	*/
+	__global__ void row_softmax_derivative_kernel(T *grad_output, T *softmax_output, T *grad_softmax, int batch_size, int seq_len, int embed_dim) {
+		/**
+		 * Kernel for computing the derivative of the softmax function,
+		 * each thread computes one cell of the output matrix grad_softmax
+		 * @param grad_output: flat array of matrix of shape batch_size x seq_len x embed_dim, gradient of the loss with respect to the softmax values
+		 * @param softmax_output: flat array of matrix of shape batch_size x seq_len x embed_dim, softmax output
+		 * @param grad_softmax: flat array of matrix of shape batch_size x seq_len x embed_dim, gradient of the loss with respect to the input of the softmax function
+		 * @param batch_size: number of sequences in the batch
+		 * @param seq_len: length of each sequence
+		 * @param embed_dim: dimension of the embedding
+		*/
 
-	size_t b = blockIdx.z;
-	size_t x = blockIdx.x * blockDim.x + threadIdx.x;
+		int b = blockIdx.z * blockDim.z + threadIdx.z;
+		int i = blockIdx.x * blockDim.x + threadIdx.x;
+		int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-	if (x >= M) {
-		return;
-	}
+		if (b < batch_size && i < seq_len && j < embed_dim) {
+			int index_base = b * seq_len * embed_dim + i * embed_dim + j;
+			T diagonal_term = softmax_output[index_base] * (1 - softmax_output[index_base]);
+			T off_diagonal_term = -softmax_output[index_base];
+			T gradient = 0.0;
 
-	for (size_t y = 0; y < N; y++) {
-		size_t index = b * M * N + x * N + y;
-		T s_i = A[index];
-		T grad = 0;
-		for (size_t k = 0; k < N; k++) {
-			size_t j_index = b * M * N + x * N + k;		
-			if (k == y) {
-				// diagonal part: softmax(x_i) * (1 - softmax(x_i))
-				grad += s_i * (1 - s_i) * B[j_index];
-			} else {
-				// off-diagonal part: -softmax(x_i) * softmax(x_j)
-				grad -= s_i * A[j_index] * B[j_index];
+			for (int k = 0; k < embed_dim; k++) {
+				int k_index = b * seq_len * embed_dim + i * embed_dim + k;
+				gradient += grad_output[k_index] *
+							(k == j ? diagonal_term : off_diagonal_term * softmax_output[k_index]);
 			}
+
+			grad_softmax[index_base] = gradient;
 		}
-		C[index] = grad;
-	}
 	}
 
 

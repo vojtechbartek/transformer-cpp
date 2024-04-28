@@ -279,6 +279,13 @@ namespace MatrixUtils {
 template <typename T>
 std::vector<std::vector<T>> rowSoftmaxDerivative(const std::vector<std::vector<T>>& grad_output,
                                                   const std::vector<std::vector<T>>& softmax_output) {
+  /*
+    * Compute the derivative of the softmax function with respect to the input
+    *
+    * @param grad_output: the gradient of the loss with respect to the output of the softmax function, shape (seq_len x embed_dim)
+    * @param softmax_output: the output of the softmax function, shape (seq_len x embed_dim)
+    * @return: the gradient of the loss with respect to the input of the softmax function, shape (seq_len x embed_dim)
+  */
   size_t seq_len = softmax_output.size();
   size_t embed_dim = softmax_output[0].size();
 
@@ -307,7 +314,7 @@ std::vector<std::vector<std::vector<T>>> rowSoftmaxDerivative(const std::vector<
    * Compute the derivative of the softmax function with respect to the input for a batch of matrices
    *
    * @param grad_output: the gradient of the loss with respect to the output of the softmax function, shape (batch x seq_len x embed_dim)
-   * @param softmax_output: the output of the softmax function, shape (batch x seq_len x seq_len)
+   * @param softmax_output: the output of the softmax function, shape (batch x seq_len x embed_dim)
    * @return: the gradient of the loss with respect to the input of the softmax function, shape (batch x seq_len x embed_dim)
    */
   

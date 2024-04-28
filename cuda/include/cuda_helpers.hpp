@@ -131,6 +131,8 @@ namespace CudaHelpers {
 		int M = matrix1[0].size();
 		int K = matrix1[0][0].size();
 		int P = matrix2[0][0].size();
+
+
 		assert(matrix2.size() == batch_size);
 		assert(matrix2[0].size() == K);
 
@@ -473,9 +475,10 @@ namespace CudaHelpers {
 	flatten2DMatrix(grad_output, d_grad_output);
 
 	// Call the kernel
-	int threads = CudaConfig::BLOCK_SIZE * CudaConfig::BLOCK_SIZE;
-	int blocks = std::ceil(static_cast<float>(M * N) / threads);
-	Kernel::row_softmax_derivative_kernel<<<blocks, threads>>>(d_softmax_output, d_grad_output, d_result, M, N);
+	dim3 threadsPerBlock(CudaConfig::BLOCK_SIZE, CudaConfig::BLOCK_SIZE);
+	dim3 numBlocks((M + threadsPerBlock.x - 1) / threadsPerBlock.x,
+               	   (N + threadsPerBlock.y - 1) / threadsPerBlock.y);
+	Kernel::row_softmax_derivative_kernel<<<numBlocks, threadsPerBlock>>>(d_softmax_output, d_grad_output, d_result, M, N);
 
 	cudaError_t error = cudaPeekAtLastError();
 	if (error != cudaSuccess) {
@@ -521,13 +524,13 @@ namespace CudaHelpers {
 	flatten3DMatrix(grad_output, d_grad_output);
 
 	// Call the kernel
-	dim3 grid(1,1,1);
-	int threads = CudaConfig::BLOCK_SIZE * CudaConfig::BLOCK_SIZE;
+	dim3 threadsPerBlock3D(CudaConfig::BLOCK_SIZE, CudaConfig::BLOCK_SIZE, 1);
+	dim3 numBlocks3D((M + threadsPerBlock3D.x - 1) / threadsPerBlock3D.x,
+ 	                (N + threadsPerBlock3D.y - 1) / threadsPerBlock3D.y,
+  	                (batch_size + threadsPerBlock3D.z - 1) / threadsPerBlock3D.z);
 
-	grid.z = batch_size;
-	grid.x = std::ceil(static_cast<float>(M * N) / threads);
 
-	Kernel::row_softmax_derivative_kernel<<<grid, threads>>>(d_softmax_output, d_grad_output, d_result, batch_size, M, N);
+	Kernel::row_softmax_derivative_kernel<<<numBlocks3D, threadsPerBlock3D>>>(d_softmax_output, d_grad_output, d_result, batch_size, M, N);
 
 	cudaError_t error = cudaPeekAtLastError();
 	if (error != cudaSuccess) {

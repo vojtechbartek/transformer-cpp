@@ -2,6 +2,8 @@
 #include <iostream>
 #include <vector>
 
+float EPS = 1e-5;
+
 
 int main() {
 
@@ -83,7 +85,7 @@ int main() {
 			sum += result_softmax[i][j];
 		}
 		// check if the sum of the row is 1 with some tolerance
-		if (std::abs(sum - 1.0f) > 0.0001f) {
+		if (std::abs(sum - 1.0f) > EPS) {
 			softmaxed = false;
 			std::cout << "[-] Matrix softmax test failed, sum of row is not 1 : " << sum << std::endl;
 			break;
@@ -177,7 +179,7 @@ int main() {
 	std::vector<float> result_mean_vector = MatrixUtils::batchVectorMean(tensor);
 	bool same_mean_vector = true;
 	for (int i = 0; i < result_mean_vector.size(); i++) {
-		if (std::abs(result_mean_vector[i] - expected_result_mean_vector[i]) > 0.0001f) {
+		if (std::abs(result_mean_vector[i] - expected_result_mean_vector[i]) > EPS) {
 			same_mean_vector = false;
 			break;
 		}
@@ -187,6 +189,45 @@ int main() {
 	} else {
 		std::cout << "[-] Batch vector mean test failed" << std::endl;
 	}
+
+	std::vector<std::vector<float>> grad_output = {
+        {1.0f, 2.0f},
+        {3.0f, 4.0f}
+    };
+    std::vector<std::vector<float>> softmax_output = {
+        {0.3543f, 0.6457f},
+        {0.5498f, 0.4502f}
+    };
+
+    // Expected matrix
+    std::vector<std::vector<float>> expected_softmax_der_output = {
+        {-0.2288f, 0.2288f},
+        {-0.2475f, 0.2475f}
+    };
+	std::vector<std::vector<float>> result_softmax_der = MatrixUtils::rowSoftmaxDerivative(grad_output, softmax_output);
+	bool same_softmax_der = true;
+	// Check dimensions
+	if (result_softmax_der.size() != expected_softmax_der_output.size() || result_softmax_der[0].size() != expected_softmax_der_output[0].size()) {
+		std::cout << "Softmax derivative test dimensions do not match" << std::endl;
+		std::cout << "Expected : " << expected_softmax_der_output.size() << "x" << expected_softmax_der_output[0].size() << " got : " << result_softmax_der.size() << "x" << result_softmax_der[0].size() << std::endl;
+
+		same_softmax_der = false;
+	}
+	for (int i = 0; i < result_softmax_der.size(); i++) {
+		for (int j = 0; j < result_softmax_der[i].size(); j++) {
+			if (std::abs(result_softmax_der[i][j] - expected_softmax_der_output[i][j]) > EPS) {
+				same_softmax_der = false;
+				std::cout << "at position (" << i << ", " << j << ") expected : " << expected_softmax_der_output[i][j] << " got : " << result_softmax_der[i][j] << std::endl;
+				break;
+			}
+		}
+	}
+	if (same_softmax_der) {
+		std::cout << "[+] Softmax derivative test passed" << std::endl;
+	} else {
+		std::cout << "[-] Softmax derivative test failed" << std::endl;
+	}
+
 
 	return 0;
 }
