@@ -1,6 +1,6 @@
-batch_size: 1
+batch_size: 20
 vocab_size: 50257
-seq_len: 1
+seq_len: 10
 embedding_dim: 768
 num_layers: 2
 head_sizes: [128, 512]

@@ -5,7 +5,7 @@
 #include <yaml-cpp/yaml.h>
 #include <vector>
 #include <cassert>
-
+#include <chrono>
 
 
 int main() {
@@ -50,11 +50,10 @@ int main() {
     std::vector<std::vector<std::vector<float>>> input_data_batched(batch_size, std::vector<std::vector<float>>(seq_len, std::vector<float>(embedding_dim, 0.0)));
     std::vector<std::vector<int>> target_data_batched(batch_size, std::vector<int>(seq_len, 0));
     
-
-
     // Train the model
     for (int epoch = 0; epoch < num_epochs; ++epoch) {
         std::cout << "Epoch " << epoch +1 << std::endl;
+	auto start = std::chrono::steady_clock::now();
 
         // fill the batched input and target data, epoch ends when all data is used once
         // if the data is not divisible by the batch size, the last batch will be smaller
@@ -72,6 +71,7 @@ int main() {
 
             // Forward pass
             std::vector<std::vector<std::vector<float>>> output_logits = model.forward(input_data_batched);
+	    bool first = true;
             for (int b = 0; b < batch_size; b++) {
                 for (int s = 0; s < seq_len; s++) {
                     int max_index = 0;
@@ -82,16 +82,18 @@ int main() {
                             max_index = v;
                         }
                     }
-                    std::cout << "Predicted: " << max_index << " " << " with probability " << max_value << std::endl;
-                    std::cout << "Target: " << target_data_batched[b][s] << std::endl;
-                    std::cout << "Target predicted probability: " << output_logits[b][s][target_data_batched[b][s]] << std::endl;
-                    std::cout << "---------" << std::endl;
+		    if (first) {
+			    std::cout << "    Predicted: " << max_index << " " << " with probability " << max_value << std::endl;
+			    std::cout << "    Target: " << target_data_batched[b][s] << std::endl;
+			    std::cout << "    Target predicted probability: " << output_logits[b][s][target_data_batched[b][s]] << std::endl;
+		    first = false;
+		    }
                 }   
             }
                         
             // Compute loss
             float loss = cross_entropy_loss(output_logits, target_data_batched);
-            std::cout << "  Loss: " << loss << std::endl;
+            std::cout << "    Loss: " << loss << std::endl;
         
             // Backward pass
             std::vector<std::vector<std::vector<float>>> 
@@ -110,8 +112,11 @@ int main() {
 
             // Update weights
             model.update_weights(learning_rate);
+   	    std::cout << "    Step " << step << " / " << input_data.size() << std::endl;
 
         } // all steps taken, end of epoch
+	auto end = std::chrono::steady_clock::now();
+	std::cout << " Elapsed = " << std::chrono::duration_cast<std::chrono::seconds> (end - start).count() << "[sec]" << std::endl;
     }
 
     // TODO Save the model
