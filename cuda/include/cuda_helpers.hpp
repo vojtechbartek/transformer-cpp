@@ -104,8 +104,8 @@ matrixMultiplication(const std::vector<std::vector<T>> &matrix1,
 
   grid.x = std::ceil(static_cast<float>(M) / static_cast<float>(threads.x));
   grid.y = std::ceil(static_cast<float>(P) / static_cast<float>(threads.y));
-
   Kernel::mm_kernel<<<grid, threads>>>(d_matrix1, d_matrix2, d_result, M, N, P);
+  //Kernel::mm_kernel_faster<T, CudaConfig::BLOCK_SIZE><<<grid, threads>>>(d_matrix1, d_matrix2, d_result, M, N, P);
 
   cudaError_t error = cudaPeekAtLastError();
   if (error != cudaSuccess) {
@@ -169,8 +169,9 @@ std::vector<std::vector<std::vector<T>>> batchMatrixMultiplication(
   grid.x = std::ceil(static_cast<float>(M) / static_cast<float>(threads.x));
   grid.y = std::ceil(static_cast<float>(K) / static_cast<float>(threads.y));
 
-  Kernel::mm_kernel<<<grid, threads>>>(d_matrix1, d_matrix2, d_result,
-                                       batch_size, M, K, P);
+  Kernel::mm_kernel<<<grid, threads>>>(d_matrix1, d_matrix2, d_result, batch_size, M, K, P);
+  //Kernel::mm_kernel_faster<T, CudaConfig::BLOCK_SIZE><<<grid, threads>>>(d_matrix1, d_matrix2, d_result,
+   //                                    batch_size, M, K, P);
 
   cudaError_t error = cudaPeekAtLastError();
   if (error != cudaSuccess) {
@@ -234,8 +235,9 @@ std::vector<std::vector<std::vector<T>>> batchMatrixMultiplication(
   grid.x = std::ceil(static_cast<float>(M) / static_cast<float>(threads.x));
   grid.y = std::ceil(static_cast<float>(K) / static_cast<float>(threads.y));
 
-  Kernel::bmm_kernel<<<grid, threads>>>(d_matrix1, d_matrix2, d_result,
-                                        batch_size, M, K, P);
+  Kernel::bmm_kernel<<<grid, threads>>>(d_matrix1, d_matrix2, d_result, batch_size, M, K, P);
+  //Kernel::bmm_kernel_faster<T, CudaConfig::BLOCK_SIZE><<<grid, threads>>>(d_matrix1, d_matrix2, d_result,
+                                        // batch_size, M, K, P);
 
   cudaError_t error = cudaPeekAtLastError();
   if (error != cudaSuccess) {
