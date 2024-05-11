@@ -1,4 +1,4 @@
-bCXX=g++
+CXX=g++
 NVCC=nvcc
 CXXFLAGS=-std=c++11
 NVCCFLAGS=-std=c++11 -x cu

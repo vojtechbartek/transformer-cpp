@@ -3,29 +3,29 @@
 
 namespace Kernel {
 
-template <typename T>
-__global__ void mm_kernel(const T *A, const T *B, T *C, int M, int K, int P) {
+template <typename t>
+__global__ void mm_kernel(const t *a, const t *b, t *c, int m, int k, int p) {
   /*
-   * Kernel for matrix multiplication,
-   * each thread computes one cell of the output matrix C
+   * kernel for matrix multiplication,
+   * each thread computes one cell of the output matrix c
    *
-   * @param A: flat array of matrix of shape M x K
-   * @param B: flat array of matrix of shape K x P
-   * @param C: flat array of matrix of shape M x P, result of A x B
+   * @param a: flat array of matrix of shape m x k
+   * @param b: flat array of matrix of shape k x p
+   * @param c: flat array of matrix of shape m x p, result of a x b
    */
-  size_t x = blockIdx.x * blockDim.x + threadIdx.x;
-  size_t y = blockIdx.y * blockDim.y + threadIdx.y;
+  size_t x = blockidx.x * blockdim.x + threadidx.x;
+  size_t y = blockidx.y * blockdim.y + threadidx.y;
 
-  if ((x >= M) || (y >= P)) {
+  if ((x >= m) || (y >= p)) {
     return;
   }
 
-  T sum = 0;
+  t sum = 0;
 
-  for (size_t k = 0; k < K; k++) {
-    sum += A[x * K + k] * B[k * P + y];
+  for (size_t k = 0; k < k; k++) {
+    sum += a[x * k + k] * b[k * p + y];
   }
-  C[x * P + y] = sum;
+  c[x * p + y] = sum;
 }
 
 template <typename T>
@@ -55,6 +55,112 @@ __global__ void mm_kernel(const T *A, const T *B, T *C, int batch, int M, int K,
   C[b * M * P + x * P + y] = sum;
 }
 
+template <typename T, int TILE_SIZE>
+__global__ void mm_kernel_faster(const T *A, const T *B, T *C, int M, int K,
+                                 int P) {
+  /*
+   * Kernel for matrix multiplication with shared memory, tile decomposition
+   * and loop unrolling
+   * 
+   * @param A: flat array of matrix of shape M x K
+   * @param B: flat array of matrix of shape K x P
+   * @param C: flat array of matrix of shape M x P, result of A x B
+   */
+
+  int bx = blockIdx.x;
+  int by = blockIdx.y;
+  int tx = threadIdx.x;
+  int ty = threadIdx.y;
+
+  int row = by * TILE_SIZE + ty;
+  int col = bx * TILE_SIZE + tx;
+
+  T value = 0;
+
+  __shared__ T As[TILE_SIZE][TILE_SIZE];
+  __shared__ T Bs[TILE_SIZE][TILE_SIZE];
+
+  // Loop over the A and B tiles to compute the C element
+  for (int t = 0; t < (K - 1) / TILE_SIZE + 1; t++) {
+    // Load the tiles into shared memory
+    if (row < M && t * TILE_SIZE + tx < K) {
+      As[ty][tx] = A[row * K + t * TILE_SIZE + tx];
+    } else {
+      As[ty][tx] = 0;
+    }
+
+    if (col < P && t * TILE_SIZE + ty < K) {
+      Bs[ty][tx] = B[(t * TILE_SIZE + ty) * P + col];
+    } else {
+      Bs[ty][tx] = 0;
+    }
+
+    __syncthreads();
+
+    for (int i = 0; i < TILE_SIZE; i++) {
+      value += As[ty][i] * Bs[i][tx];
+    }
+
+    __syncthreads();
+  }
+  
+  // Write the final value to the output matrix
+  if (row < M && col < P) {
+    C[row * P + col] = value;
+  }
+}
+
+template <typename T, int TILE_SIZE>
+__global__ void mm_kernel_faster(const T *A, const T *B, T *C, int batch, int M, int K, int P) {
+  /*
+   * Optimized kernel for batched matrix multiplication using tiling and shared memory.
+   * Each thread computes one cell of the output tensor C.
+   *
+   * @param A: flat array of matrix of shape batch x M x K
+   * @param B: flat array of matrix of shape batch x K x P
+   * @param C: flat array of matrix of shape batch x M x P, result of A x B
+   */
+  int b = blockIdx.z;
+  int row = blockIdx.y * TILE_SIZE + threadIdx.y; 
+  int col = blockIdx.x * TILE_SIZE + threadIdx.x;
+
+  T value = 0;
+
+  __shared__ T As[TILE_SIZE][TILE_SIZE];
+  __shared__ T Bs[TILE_SIZE][TILE_SIZE];
+
+  // loop over the tiles of A and B matrices to compute the C element
+  for (int t = 0; t < (K + TILE_SIZE - 1) / TILE_SIZE; t++) {
+    // load the tiles into shared memory
+    if (row < M && t * TILE_SIZE + threadIdx.x < K) {
+      As[threadIdx.y][threadIdx.x] = A[b * M * K + row * K + t * TILE_SIZE + threadIdx.x];
+    } else {
+      As[threadIdx.y][threadIdx.x] = 0;
+    }
+
+    if (col < P && t * TILE_SIZE + threadIdx.y < K) {
+      Bs[threadIdx.y][threadIdx.x] = B[b * K * P + (t * TILE_SIZE + threadIdx.y) * P + col];
+    } else {
+      Bs[threadIdx.y][threadIdx.x] = 0;
+    }
+
+    __syncthreads();
+
+    for (int i = 0; i < TILE_SIZE; i++) {
+      value += As[threadIdx.y][i] * Bs[i][threadIdx.x];
+    }
+
+    __syncthreads();
+  }
+
+  // write the final value to the output matrix
+  if (row < M && col < P) {
+    C[b * M * P + row * P + col] = value;
+  }
+}
+
+
+
 template <typename T>
 __global__ void bmm_kernel(const T *A, const T *B, T *C, int batch, int M,
                            int K, int P) {
@@ -82,6 +188,58 @@ __global__ void bmm_kernel(const T *A, const T *B, T *C, int batch, int M,
   }
   C[b * M * P + x * P + y] = sum;
 }
+
+template <typename T, int TILE_SIZE>
+__global__ void bmm_kernel_faster(const T *A, const T *B, T *C, int batch, int M,
+                                  int K, int P) {
+  /*
+   * Optimized kernel for batched matrix multiplication with broadcasted batch using tiling and shared memory.
+   * Each thread computes one cell of the output tensor C.
+   *
+   * @param A: flat array of matrix of shape batch x M x K
+   * @param B: flat array of matrix of shape K x P
+   * @param C: flat array of matrix of shape batch x M x P, result of applying A x B to each batch of A
+   */
+
+  int b = blockIdx.z;
+  int row = blockIdx.y * TILE_SIZE + threadIdx.y;
+  int col = blockIdx.x * TILE_SIZE + threadIdx.x;
+
+  T value = 0;
+
+  __shared__ T As[TILE_SIZE][TILE_SIZE];
+  __shared__ T Bs[TILE_SIZE][TILE_SIZE];
+
+  // loop over the tiles of A and B matrices to compute the C element
+  for (int t = 0; t < (K + TILE_SIZE - 1) / TILE_SIZE; t++) {
+    // load the tiles into shared memory
+    if (row < M && t * TILE_SIZE + threadIdx.x < K) {
+      As[threadIdx.y][threadIdx.x] = A[b * M * K + row * K + t * TILE_SIZE + threadIdx.x];
+    } else {
+      As[threadIdx.y][threadIdx.x] = 0;
+    }
+
+    if (col < P && t * TILE_SIZE + threadIdx.y < K) {
+      Bs[threadIdx.y][threadIdx.x] = B[(t * TILE_SIZE + threadIdx.y) * P + col];
+    } else {
+      Bs[threadIdx.y][threadIdx.x] = 0;
+    }
+
+    __syncthreads();
+
+    for (int i = 0; i < TILE_SIZE; i++) {
+      value += As[threadIdx.y][i] * Bs[i][threadIdx.x];
+    }
+
+    __syncthreads();
+  }
+
+  // write the final value to the output matrix
+  if (row < M && col < P) {
+    C[b * M * P + row * P + col] = value;
+  }
+}
+
 
 template <typename T>
 __global__ void matrix_add_kernel(const T *A, const T *B, T *C, int M, int N) {
