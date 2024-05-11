@@ -6,7 +6,7 @@ num_layers: 2
 head_sizes: [128, 512]
 ff_hidden_dims: [128, 128]
 layer_output_dims: [128]
-num_epochs: 4
+num_epochs: 1
 learning_rate: 0.0001
 input_data_file: "dataset/embeddings.csv"
 target_data_file: "dataset/input_ids.csv"

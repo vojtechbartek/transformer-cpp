@@ -59,8 +59,7 @@ template <typename T, int TILE_SIZE>
 __global__ void mm_kernel_faster(const T *A, const T *B, T *C, int M, int K,
                                  int P) {
   /*
-   * Kernel for matrix multiplication with shared memory, tile decomposition
-   * and loop unrolling
+   * Kernel for matrix multiplication with shared memory and tile decomposition
    * 
    * @param A: flat array of matrix of shape M x K
    * @param B: flat array of matrix of shape K x P
@@ -401,54 +400,6 @@ __global__ void row_softmax_derivative_kernel(const T *grad_output,
 
 
 template <typename T>
-__global__ void row_softmax_derivative_kernel_faster(const T *grad_output,
-		const T *softmax_output, T *grad_softmax, int M, int N){
-	/**
-	       * Optimized kernel for computing the derivative of the softmax function using shared memory,
-	            * each thread computes one cell of the output matrix grad_softmax
-		         * @param grad_output: flat array of matrix of shape M x N, gradient of the
-			      * loss with respect to the softmax values
-			           * @param softmax_output: flat array of matrix of shape M x N, softmax output
-				        * @param grad_softmax: flat array of matrix of shape M x N, gradient of the
-					     * loss with respect to the input of the softmax function
-					          */
-	int i = blockIdx.x * blockDim.x + threadIdx.x;
-	int j = blockIdx.y * blockDim.y + threadIdx.y;
-
-	// Use shared memory for softmax and gradient outputs
-    	extern __shared__ T shared_data[];
-	T *shared_softmax = shared_data;
-	T *shared_grad_output = &shared_data[N];
-
-	// Load the row into shared memory
-    if (threadIdx.y == 0) { // Let the first thread of each block load the data
-	    for (int k = 0; k < N; k++) {
-		shared_softmax[k] = softmax_output[i * N + k];
-		shared_grad_output[k] = grad_output[i * N + k];
-	    }
-    }
-
-    __syncthreads();
-
-    if (i < M && j < N) {
-	            T diagonal_term = shared_softmax[j] * (1 - shared_softmax[j]);
-		            T off_diagonal_term = -shared_softmax[j];
-			            T gradient = 0.0;
-
-				            for (int k = 0; k < N; k++) {
-						                if (k == j)
-									                gradient += shared_grad_output[k] * diagonal_term;
-								            else
-										                    gradient += shared_grad_output[k] * off_diagonal_term * shared_softmax[k];
-									            }
-					            grad_softmax[i * N + j] = gradient;
-						        }
-}
-
-
-
-
-template <typename T>
 __global__ void row_softmax_derivative_kernel(T *grad_output, T *softmax_output,
                                               T *grad_softmax, int batch_size,
                                               int seq_len, int embed_dim) {
@@ -488,49 +439,6 @@ __global__ void row_softmax_derivative_kernel(T *grad_output, T *softmax_output,
     grad_softmax[index_base] = gradient;
   }
 }
-
-
-
-template <typename T>
-__global__ void row_softmax_derivative_kernel_faster(T *grad_output, T *softmax_output,
-		                                              T *grad_softmax, int batch_size,
-							                                                    int seq_len, int embed_dim) {
-	  /**
-	       * Optimized kernel for computing the derivative of the softmax function using shared memory,
-	          * designed for large embedding dimensions.
-		     * Each thread computes one cell of the output tensor grad_softmax.
-		        */
-	  int b = blockIdx.z;
-	    int i = blockIdx.x;
-	      int j = threadIdx.x;
-
-	        if (b < batch_size && i < seq_len && j < embed_dim) {
-			    extern __shared__ T shared_data[];
-			        T *shared_softmax = shared_data;
-				    T *shared_grad_output = &shared_data[embed_dim];
-
-				        // Load the sequence into shared memory
-				        int index_base = b * seq_len * embed_dim + i * embed_dim;
-					    if (j < embed_dim) {
-						            shared_softmax[j] = softmax_output[index_base + j];
-							            shared_grad_output[j] = grad_output[index_base + j];
-								        }
-					        __syncthreads();  // Synchronize to ensure all data is loaded
-
-						    T diagonal_term = shared_softmax[j] * (1 - shared_softmax[j]);
-						        T off_diagonal_term = -shared_softmax[j];
-							    T gradient = 0.0;
-
-							        for (int k = 0; k < embed_dim; k++) {
-									      gradient += shared_grad_output[k] *
-										                        (k == j ? diagonal_term
-													                           : off_diagonal_term * shared_softmax[k]);
-									          }
-
-								    grad_softmax[index_base + j] = gradient;
-								      }
-}
-
 
 
 template <typename T>

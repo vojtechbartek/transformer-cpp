@@ -104,8 +104,8 @@ matrixMultiplication(const std::vector<std::vector<T>> &matrix1,
 
   grid.x = std::ceil(static_cast<float>(M) / static_cast<float>(threads.x));
   grid.y = std::ceil(static_cast<float>(P) / static_cast<float>(threads.y));
-  Kernel::mm_kernel<<<grid, threads>>>(d_matrix1, d_matrix2, d_result, M, N, P);
-  //Kernel::mm_kernel_faster<T, CudaConfig::BLOCK_SIZE><<<grid, threads>>>(d_matrix1, d_matrix2, d_result, M, N, P);
+  //Kernel::mm_kernel<<<grid, threads>>>(d_matrix1, d_matrix2, d_result, M, N, P);
+  Kernel::mm_kernel_faster<T, CudaConfig::BLOCK_SIZE><<<grid, threads>>>(d_matrix1, d_matrix2, d_result, M, N, P);
 
   cudaError_t error = cudaPeekAtLastError();
   if (error != cudaSuccess) {
@@ -169,9 +169,9 @@ std::vector<std::vector<std::vector<T>>> batchMatrixMultiplication(
   grid.x = std::ceil(static_cast<float>(M) / static_cast<float>(threads.x));
   grid.y = std::ceil(static_cast<float>(K) / static_cast<float>(threads.y));
 
-  Kernel::mm_kernel<<<grid, threads>>>(d_matrix1, d_matrix2, d_result, batch_size, M, K, P);
-  //Kernel::mm_kernel_faster<T, CudaConfig::BLOCK_SIZE><<<grid, threads>>>(d_matrix1, d_matrix2, d_result,
-   //                                    batch_size, M, K, P);
+  //Kernel::mm_kernel<<<grid, threads>>>(d_matrix1, d_matrix2, d_result, batch_size, M, K, P);
+  Kernel::mm_kernel_faster<T, CudaConfig::BLOCK_SIZE><<<grid, threads>>>(d_matrix1, d_matrix2, d_result,
+                                       batch_size, M, K, P);
 
   cudaError_t error = cudaPeekAtLastError();
   if (error != cudaSuccess) {
@@ -237,7 +237,7 @@ std::vector<std::vector<std::vector<T>>> batchMatrixMultiplication(
 
   Kernel::bmm_kernel<<<grid, threads>>>(d_matrix1, d_matrix2, d_result, batch_size, M, K, P);
   //Kernel::bmm_kernel_faster<T, CudaConfig::BLOCK_SIZE><<<grid, threads>>>(d_matrix1, d_matrix2, d_result,
-                                        // batch_size, M, K, P);
+  //                                      batch_size, M, K, P);
 
   cudaError_t error = cudaPeekAtLastError();
   if (error != cudaSuccess) {
@@ -504,12 +504,19 @@ rowSoftmaxDerivative(const std::vector<std::vector<T>> &softmax_output,
   flatten2DMatrix(grad_output, d_grad_output);
 
   // Call the kernel
-  dim3 threadsPerBlock(CudaConfig::BLOCK_SIZE, CudaConfig::BLOCK_SIZE);
+  /*dim3 threadsPerBlock(CudaConfig::BLOCK_SIZE, CudaConfig::BLOCK_SIZE);
   dim3 numBlocks((M + threadsPerBlock.x - 1) / threadsPerBlock.x,
                  (N + threadsPerBlock.y - 1) / threadsPerBlock.y);
   Kernel::row_softmax_derivative_kernel<<<numBlocks, threadsPerBlock>>>(
       d_softmax_output, d_grad_output, d_result, M, N);
-
+  */
+  
+  dim3 dimBlock(1, 256);
+  dim3 dimGrid(M, (N + 255) / 256);
+  printf("softmax der 2d\n"); 
+  size_t shared_mem_size = 2 * N * sizeof(T);
+  
+  Kernel::row_softmax_derivative_kernel_faster<<<dimGrid, dimBlock, shared_mem_size>>>(d_softmax_output, d_grad_output, d_result, M, N);
   cudaError_t error = cudaPeekAtLastError();
   if (error != cudaSuccess) {
     std::cerr << "CUDA error: " << cudaGetErrorString(error) << std::endl;
@@ -559,6 +566,7 @@ std::vector<std::vector<std::vector<T>>> rowSoftmaxDerivative(
   flatten3DMatrix(grad_output, d_grad_output);
 
   // Call the kernel
+  /*
   dim3 threadsPerBlock3D(CudaConfig::BLOCK_SIZE, CudaConfig::BLOCK_SIZE, 1);
   dim3 numBlocks3D((M + threadsPerBlock3D.x - 1) / threadsPerBlock3D.x,
                    (N + threadsPerBlock3D.y - 1) / threadsPerBlock3D.y,
@@ -567,7 +575,14 @@ std::vector<std::vector<std::vector<T>>> rowSoftmaxDerivative(
 
   Kernel::row_softmax_derivative_kernel<<<numBlocks3D, threadsPerBlock3D>>>(
       d_softmax_output, d_grad_output, d_result, batch_size, M, N);
-
+  */
+  int threadsPerBlock = 256;
+  int numBlocksPerSeq = (N + threadsPerBlock - 1) / threadsPerBlock;
+  dim3 dimBlock(threadsPerBlock);
+  dim3 dimGrid(M, numBlocksPerSeq, batch_size);
+  //Kernel::row_softmax_derivative_kernel_faster<<<dimGrid, dimBlock>>>(d_softmax_output, d_grad_output, d_result, batch_size, M, N); 
+  Kernel::row_softmax_derivative_kernel<<<dimGrid, dimBlock>>>(
+      d_softmax_output, d_grad_output, d_result, batch_size, M, N);
   cudaError_t error = cudaPeekAtLastError();
   if (error != cudaSuccess) {
     std::cerr << "CUDA error: " << cudaGetErrorString(error) << std::endl;
