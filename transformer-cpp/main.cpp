@@ -124,13 +124,14 @@ int main() {
       model.update_weights(learning_rate);
       std::cout << "    Step " << step << " / " << input_data.size()
                 << std::endl;
-
-    } // all steps taken, end of epoch
-    auto end = std::chrono::steady_clock::now();
+auto end = std::chrono::steady_clock::now();
     std::cout
         << " Elapsed = "
-        << std::chrono::duration_cast<std::chrono::seconds>(end - start).count()
+        << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
         << "[sec]" << std::endl;
+	return 0;
+    } // all steps taken, end of epoch
+    
   }
 
   // TODO Save the model

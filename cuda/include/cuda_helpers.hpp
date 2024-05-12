@@ -510,13 +510,14 @@ rowSoftmaxDerivative(const std::vector<std::vector<T>> &softmax_output,
   Kernel::row_softmax_derivative_kernel<<<numBlocks, threadsPerBlock>>>(
       d_softmax_output, d_grad_output, d_result, M, N);
   */
-  
-  dim3 dimBlock(1, 256);
-  dim3 dimGrid(M, (N + 255) / 256);
+ 
+  int threads = CudaConfig::BLOCK_SIZE * CudaConfig::BLOCK_SIZE;
+  dim3 dimBlock(1, threads);
+  dim3 dimGrid(M, (N + threads-1) / threads);
   printf("softmax der 2d\n"); 
   size_t shared_mem_size = 2 * N * sizeof(T);
   
-  Kernel::row_softmax_derivative_kernel_faster<<<dimGrid, dimBlock, shared_mem_size>>>(d_softmax_output, d_grad_output, d_result, M, N);
+  Kernel::row_softmax_derivative_kernel<<<dimGrid, dimBlock, shared_mem_size>>>(d_softmax_output, d_grad_output, d_result, M, N);
   cudaError_t error = cudaPeekAtLastError();
   if (error != cudaSuccess) {
     std::cerr << "CUDA error: " << cudaGetErrorString(error) << std::endl;
@@ -576,7 +577,8 @@ std::vector<std::vector<std::vector<T>>> rowSoftmaxDerivative(
   Kernel::row_softmax_derivative_kernel<<<numBlocks3D, threadsPerBlock3D>>>(
       d_softmax_output, d_grad_output, d_result, batch_size, M, N);
   */
-  int threadsPerBlock = 256;
+  int threadsPerBlock = CudaConfig::BLOCK_SIZE * CudaConfig::BLOCK_SIZE;
+
   int numBlocksPerSeq = (N + threadsPerBlock - 1) / threadsPerBlock;
   dim3 dimBlock(threadsPerBlock);
   dim3 dimGrid(M, numBlocksPerSeq, batch_size);

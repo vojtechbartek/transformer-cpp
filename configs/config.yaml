@@ -1,4 +1,4 @@
-batch_size: 20
+batch_size: 1
 vocab_size: 50257
 seq_len: 10
 embedding_dim: 768
