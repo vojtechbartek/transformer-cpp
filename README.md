@@ -41,4 +41,11 @@ make USE_CUDA=1
 To run tests for CUDA kernels, run: 
 ```bash
 make test USE_CUDA=1
+
 ```
+
+To run tests for CPU version, run:
+```bash
+make test
+```
+
